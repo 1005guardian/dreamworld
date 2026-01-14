@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - Scrollable Builder</title>
+    <title>Tree Zoom - Padded Cropper</title>
     
     <script src="./scenes.js"></script>
 
@@ -11,18 +11,13 @@
         body {
             display: flex;
             flex-direction: column;
-            /* UPDATED: Start from top so scrolling works correctly */
             justify-content: flex-start;
             align-items: center;
             min-height: 100vh;
             margin: 0;
             background-color: #1a1a1a;
             font-family: sans-serif;
-            
-            /* UPDATED: Allow vertical scrolling */
             overflow-y: auto;
-            
-            /* UPDATED: Add padding so content isn't stuck to edges */
             padding: 40px 0;
         }
 
@@ -38,7 +33,6 @@
             height: 150px;
             cursor: pointer;
             user-select: none;
-            /* Ensure stage doesn't shrink in flex container */
             flex-shrink: 0;
         }
 
@@ -115,7 +109,6 @@
             color: white;
             z-index: 1000;
             width: 100%;
-            /* Ensure panel doesn't shrink */
             flex-shrink: 0;
         }
 
@@ -141,13 +134,12 @@
             padding: 15px;
             border-radius: 8px;
             border: 1px solid #444;
-            /* Wrap on small screens so text box stays usable */
             flex-wrap: wrap;
         }
 
         .output-text-area {
             flex: 2;
-            min-width: 300px; /* Minimum width before wrapping */
+            min-width: 300px;
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -162,7 +154,7 @@
             font-family: monospace;
             font-size: 14px;
             border-radius: 4px;
-            box-sizing: border-box; /* Ensures padding doesn't overflow width */
+            box-sizing: border-box;
         }
 
         .output-image-area {
@@ -216,7 +208,7 @@
             </div>
             
             <div class="output-image-area">
-                <span>Cropped Image:</span>
+                <span>Cropped Image (10px Padding):</span>
                 <img id="previewImage" src="" alt="Preview">
                 <span class="hint" style="color:#888; font-size:0.8rem;">(Right Click to Save)</span>
                 <div id="errorMsg" class="error-msg"></div>
@@ -341,6 +333,7 @@
             generatePreview(pixelLeft, pixelTop, pixelWidth, pixelHeight, rect.width, rect.height);
         }
 
+        // --- UPDATED PREVIEW FUNCTION WITH PADDING ---
         function generatePreview(x, y, w, h, stageW, stageH) {
             const currentImg = document.getElementById('current-img');
             errorMsg.style.display = 'none';
@@ -351,25 +344,38 @@
                 const ratioX = currentImg.naturalWidth / stageW;
                 const ratioY = currentImg.naturalHeight / stageH;
 
-                // 2. Create Canvas
+                // 2. Calculate Actual Crop Dimensions
+                const sourceX = x * ratioX;
+                const sourceY = y * ratioY;
+                const sourceW = w * ratioX;
+                const sourceH = h * ratioY;
+
+                // 3. Create Canvas
                 const canvas = document.createElement('canvas');
-                canvas.width = w * ratioX;
-                canvas.height = h * ratioY;
+                
+                // Add padding: 10px each side = 20px total width/height
+                canvas.width = sourceW + 20;
+                canvas.height = sourceH + 20;
+                
                 const ctx = canvas.getContext('2d');
 
-                // 3. Draw Crop
+                // 4. Fill White Background
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 5. Draw Crop centered (10px offset)
                 ctx.drawImage(
                     currentImg,
-                    x * ratioX, y * ratioY, w * ratioX, h * ratioY, // Source crop
-                    0, 0, canvas.width, canvas.height             // Destination
+                    sourceX, sourceY, sourceW, sourceH, // Source
+                    10, 10, sourceW, sourceH            // Dest (with 10px offset)
                 );
 
-                // 4. Export (WRAP IN TRY-CATCH)
+                // 6. Export
                 previewImage.src = canvas.toDataURL('image/png');
                 
             } catch (err) {
                 console.warn("Image Export Failed (Canvas Tainted)");
-                errorMsg.innerText = "Preview blocked by browser security (Tainted Canvas).";
+                errorMsg.innerText = "Preview blocked by browser security (Tainted Canvas). Use Local Server.";
                 errorMsg.style.display = 'block';
             }
         }
