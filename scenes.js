@@ -41,7 +41,7 @@ window.gameData = {
         image: './thumbnail4_l.png',
         type: 'cinematic',
         hotspots: []
-    }
+    },
     'scene-D': {
         image: './thumbnail5_l.png',
         type: 'cinematic',
