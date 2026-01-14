@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - 10% Padding Cropper</title>
+    <title>Tree Zoom - Builder with Target Field</title>
     
     <script src="./scenes.js"></script>
 
@@ -120,7 +120,7 @@
             transition: opacity 0.5s, background 0.2s; pointer-events: none;
         }
         .btn.active { opacity: 1; pointer-events: auto; }
-        .btn:hover { background: rgba(255,255,255,0.2); }
+        .btn.active:hover { background: rgba(255,255,255,0.2); }
 
         /* BUILDER OUTPUT AREA */
         .builder-container {
@@ -326,7 +326,8 @@
             const perWidth = ((pixelWidth / rect.width) * 100).toFixed(1) + '%';
             const perHeight = ((pixelHeight / rect.height) * 100).toFixed(1) + '%';
             
-            const outputString = `{ top: '${perTop}', left: '${perLeft}', width: '${perWidth}', height: '${perHeight}' }`;
+            // UPDATED: Added target: ''
+            const outputString = `{ top: '${perTop}', left: '${perLeft}', width: '${perWidth}', height: '${perHeight}', target: '' }`;
             builderOutput.value = outputString;
             builderOutput.select();
 
@@ -334,47 +335,37 @@
             generatePreview(pixelLeft, pixelTop, pixelWidth, pixelHeight, rect.width, rect.height);
         }
 
-        // --- UPDATED PREVIEW WITH 10% PADDING ---
         function generatePreview(x, y, w, h, stageW, stageH) {
             const currentImg = document.getElementById('current-img');
             errorMsg.style.display = 'none';
             previewImage.src = '';
 
             try {
-                // 1. Calculate Ratio (Natural / Display)
                 const ratioX = currentImg.naturalWidth / stageW;
                 const ratioY = currentImg.naturalHeight / stageH;
 
-                // 2. Calculate Actual Crop Dimensions
                 const sourceX = Math.round(x * ratioX);
                 const sourceY = Math.round(y * ratioY);
                 const sourceW = Math.round(w * ratioX);
                 const sourceH = Math.round(h * ratioY);
 
-                // 3. CALCULATE 10% PADDING (Based on cropped width)
-                // Use Math.round to keep pixels crisp
+                // 10% Padding
                 const padding = Math.round(sourceW * 0.10);
 
-                // 4. Create Canvas
-                // Size = Source Size + (Padding * 2 for both sides)
                 const canvas = document.createElement('canvas');
                 canvas.width = sourceW + (padding * 2);
                 canvas.height = sourceH + (padding * 2);
                 
                 const ctx = canvas.getContext('2d');
-
-                // 5. Fill White Background
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 6. Draw Crop centered
                 ctx.drawImage(
                     currentImg,
-                    sourceX, sourceY, sourceW, sourceH, // Source
-                    padding, padding, sourceW, sourceH  // Dest (offset by padding)
+                    sourceX, sourceY, sourceW, sourceH,
+                    padding, padding, sourceW, sourceH
                 );
 
-                // 7. Export
                 previewImage.src = canvas.toDataURL('image/png');
                 
             } catch (err) {

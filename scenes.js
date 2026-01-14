@@ -35,7 +35,9 @@ window.gameData = {
     'scene-B': {
         image: './thumbnail3_l.png',
         type: 'cinematic',
-        hotspots: []
+        hotspots: [
+            { top: '11.7%', left: '55.5%', width: '5.4%', height: '5.4%', target: 'palace' }
+        ]
     },
     'scene-C': {
         image: './thumbnail4_l.png',
@@ -46,5 +48,9 @@ window.gameData = {
         image: './thumbnail5.png',
         type: 'cinematic',
         hotspots: []
-    }
-};
+    },
+    'palace': {
+        image: './palace.png',
+        type: 'cinematic',
+        hotspots: []
+    },};
