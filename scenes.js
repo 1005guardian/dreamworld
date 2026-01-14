@@ -36,7 +36,8 @@ window.gameData = {
         image: './thumbnail3_l.png',
         type: 'cinematic',
         hotspots: [
-            { top: '11.7%', left: '55.5%', width: '5.4%', height: '5.4%', target: 'palace' }
+            { top: '11.7%', left: '55.5%', width: '5.4%', height: '5.4%', target: 'palace' },
+            { top: '81.6%', left: '34.7%', width: '6.0%', height: '6.0%', target: 'lair' }
         ]
     },
     'scene-C': {
@@ -53,4 +54,10 @@ window.gameData = {
         image: './palace.png',
         type: 'cinematic',
         hotspots: []
-    },};
+    },
+    'lair': {
+        image: './lair.png',
+        type: 'cinematic',
+        hotspots: []
+    },
+};
