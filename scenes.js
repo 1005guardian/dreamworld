@@ -15,7 +15,8 @@ window.gameData = {
         hotspots: [
             { top: '10.2%', left: '12%', width: '8%', height: '8%', target: 'scene-A' },
             { top: '64%', left: '60%', width: '8%', height: '8%', target: 'scene-B' },
-            { top: '13%', left: '70%', width: '8%', height: '8%', target: 'scene-C' }
+            { top: '13%', left: '70%', width: '8%', height: '8%', target: 'scene-C' },
+            { top: '33.0%', left: '62.8%', width: '5.6%', height: '5.6%', target: 'scene-D' }
         ]
     },
     'scene-A': {
@@ -38,6 +39,11 @@ window.gameData = {
     },
     'scene-C': {
         image: './thumbnail4_l.png',
+        type: 'cinematic',
+        hotspots: []
+    }
+    'scene-D': {
+        image: './thumbnail5_l.png',
         type: 'cinematic',
         hotspots: []
     }
