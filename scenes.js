@@ -20,7 +20,7 @@ window.gameData = {
         ]
     },
     'scene-A': {
-        image: './thumbnail2_l1.png',
+        image: './thumbnail2_l.png',
         type: 'cinematic',
         hotspots: [
             // A smaller nested hotspot
