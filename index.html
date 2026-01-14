@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - Subtle Interleaved Hotspots</title>
+    <title>Tree Zoom - Faster & Clearer Hotspots</title>
     
     <script src="./scenes.js"></script>
 
@@ -60,11 +60,11 @@
         .layer-image.background { opacity: 1; z-index: 5; }
         .layer-image.hidden { opacity: 0; z-index: 1; }
 
-        /* --- HOTSPOTS (UPDATED ANIMATION) --- */
+        /* --- HOTSPOTS (UPDATED: FASTER & LESS SUBTLE) --- */
         .hotspot {
             position: absolute; z-index: 100;
             
-            /* Start Invisible (Animation handles visibility) */
+            /* Start invisible (animation handles opacity) */
             border: 1px dashed rgba(255, 255, 255, 0);
             background-color: transparent;
             
@@ -73,8 +73,8 @@
             transform: scale(0.8);
             transition: opacity 0.4s ease, transform 0.4s ease;
             
-            /* UPDATED: Longer duration (4s) for more "rest" time */
-            animation: subtle-pulse 4s infinite;
+            /* UPDATED: Faster cycle (2.5s instead of 4s) */
+            animation: pulse-sequence 2.5s infinite;
         }
         
         .hotspot.visible {
@@ -84,19 +84,18 @@
         }
         
         /* UPDATED KEYFRAMES */
-        @keyframes subtle-pulse {
+        @keyframes pulse-sequence {
             0% {
-                /* Start: 50% Opacity Border */
-                border-color: rgba(255, 255, 255, 0.5);
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+                /* UPDATED: Stronger start opacity (0.8 instead of 0.5) */
+                border-color: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
             }
-            30% {
-                /* Fade out fairly quickly */
+            50% {
+                /* UPDATED: Stays visible longer (fade ends at 50% instead of 30%) */
                 border-color: rgba(255, 255, 255, 0);
                 box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
             }
             100% {
-                /* Stay invisible for the rest of the 4s cycle */
                 border-color: rgba(255, 255, 255, 0);
                 box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
             }
@@ -257,7 +256,6 @@
         let historyStack = [];
         let isAnimating = false;
 
-        // Builder State
         let isDrawing = false;
         let startX = 0;
         let startY = 0;
@@ -282,18 +280,14 @@
             backBtn.addEventListener('click', goBack);
         }
 
-        // ==========================================
-        // BUILDER MODE
-        // ==========================================
+        // --- DRAWING ---
         function startDraw(e) {
             if (!builderToggle.checked) return;
             e.preventDefault();
             isDrawing = true;
-            
             const rect = stage.getBoundingClientRect();
             startX = e.clientX - rect.left;
             startY = e.clientY - rect.top;
-
             selectionBox.style.left = startX + 'px';
             selectionBox.style.top = startY + 'px';
             selectionBox.style.width = '0px';
@@ -303,19 +297,14 @@
 
         function moveDraw(e) {
             if (!isDrawing || !builderToggle.checked) return;
-
             const rect = stage.getBoundingClientRect();
             let currentX = e.clientX - rect.left;
             let currentY = e.clientY - rect.top;
-
             let diffX = currentX - startX;
             let diffY = currentY - startY;
-
             let size = Math.max(Math.abs(diffX), Math.abs(diffY));
-
             let newLeft = (diffX < 0) ? (startX - size) : startX;
             let newTop = (diffY < 0) ? (startY - size) : startY;
-
             selectionBox.style.width = size + 'px';
             selectionBox.style.height = size + 'px';
             selectionBox.style.left = newLeft + 'px';
@@ -325,12 +314,10 @@
         function endDraw(e) {
             if (!isDrawing) return;
             isDrawing = false;
-            
             if (!builderToggle.checked) {
                 selectionBox.style.display = 'none';
                 return;
             }
-
             const rect = stage.getBoundingClientRect();
             const pixelLeft = parseFloat(selectionBox.style.left);
             const pixelTop = parseFloat(selectionBox.style.top);
@@ -354,20 +341,18 @@
             generatePreview(pixelLeft, pixelTop, pixelWidth, pixelHeight, rect.width, rect.height);
         }
 
+        // --- PREVIEW ---
         function generatePreview(x, y, w, h, stageW, stageH) {
             const currentImg = document.getElementById('current-img');
             errorMsg.style.display = 'none';
             previewImage.src = '';
-
             try {
                 const ratioX = currentImg.naturalWidth / stageW;
                 const ratioY = currentImg.naturalHeight / stageH;
-
                 const sourceX = Math.round(x * ratioX);
                 const sourceY = Math.round(y * ratioY);
                 const sourceW = Math.round(w * ratioX);
                 const sourceH = Math.round(h * ratioY);
-
                 const padding = Math.round(sourceW * 0.10);
 
                 const canvas = document.createElement('canvas');
@@ -377,15 +362,8 @@
                 const ctx = canvas.getContext('2d');
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.drawImage(
-                    currentImg,
-                    sourceX, sourceY, sourceW, sourceH,
-                    padding, padding, sourceW, sourceH
-                );
-
+                ctx.drawImage(currentImg, sourceX, sourceY, sourceW, sourceH, padding, padding, sourceW, sourceH);
                 previewImage.src = canvas.toDataURL('image/png');
-                
             } catch (err) {
                 console.warn("Image Export Failed (Canvas Tainted)");
                 errorMsg.innerText = "Preview blocked by browser security (Tainted Canvas). Use Local Server.";
@@ -393,9 +371,7 @@
             }
         }
 
-        // ==========================================
-        // HELPERS
-        // ==========================================
+        // --- HELPERS ---
         function createImg(src, classes) {
             const img = document.createElement('img');
             img.src = src;
@@ -414,16 +390,15 @@
             currentSceneId = id; updateUI();
         }
 
-        // --- UPDATED RENDER HOTSPOTS WITH INTERLEAVING ---
+        // --- UPDATED HOTSPOT RENDER ---
         function renderHotspots(list) {
             if (!list) return;
             list.forEach((h, index) => {
                 const spot = document.createElement('div');
                 spot.classList.add('hotspot');
                 
-                // Add interleaved delay
-                // Each hotspot waits 1.5s longer than the previous one before starting its loop
-                spot.style.animationDelay = (index * 1.5) + 's';
+                // UPDATED: Faster rotation (0.8s)
+                spot.style.animationDelay = (index * 0.8) + 's';
 
                 spot.style.top = h.top; spot.style.left = h.left;
                 spot.style.width = h.width; spot.style.height = h.height;
@@ -433,20 +408,14 @@
                     e.stopPropagation();
                     goForward(h.target, 'cinematic', h);
                 });
-                
-                stage.appendChild(spot);
-                
-                setTimeout(() => spot.classList.add('visible'), 50);
+                stage.appendChild(spot); setTimeout(() => spot.classList.add('visible'), 50);
             });
         }
 
-        // ==========================================
-        // NAVIGATION
-        // ==========================================
+        // --- NAVIGATION ---
         function goForward(targetId, type, hotspotData = null) {
             if (isAnimating) return;
             if (!scenes[targetId]) return;
-
             isAnimating = true;
             historyStack.push({ sceneId: currentSceneId, type: type, hotspotUsed: hotspotData });
             const targetScene = scenes[targetId];
