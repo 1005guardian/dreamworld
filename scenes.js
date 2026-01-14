@@ -16,7 +16,7 @@ window.gameData = {
             { top: '10.2%', left: '12%', width: '8%', height: '8%', target: 'scene-A' },
             { top: '64%', left: '60%', width: '8%', height: '8%', target: 'scene-B' },
             { top: '13%', left: '70%', width: '8%', height: '8%', target: 'scene-C' },
-            { top: '33.0%', left: '62.8%', width: '5.6%', height: '5.6%', target: 'scene-D' }
+            { top: '32.7%', left: '63.0%', width: '5.6%', height: '5.6%', target: 'scene-D' }
         ]
     },
     'scene-A': {
