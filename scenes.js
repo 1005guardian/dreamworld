@@ -43,7 +43,7 @@ window.gameData = {
         hotspots: []
     },
     'scene-D': {
-        image: './thumbnail5_l.png',
+        image: './thumbnail5.png',
         type: 'cinematic',
         hotspots: []
     }
