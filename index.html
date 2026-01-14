@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - Builder with Target Field</title>
+    <title>Tree Zoom - Subtle Interleaved Hotspots</title>
     
     <script src="./scenes.js"></script>
 
@@ -60,23 +60,46 @@
         .layer-image.background { opacity: 1; z-index: 5; }
         .layer-image.hidden { opacity: 0; z-index: 1; }
 
-        /* --- HOTSPOTS --- */
+        /* --- HOTSPOTS (UPDATED ANIMATION) --- */
         .hotspot {
             position: absolute; z-index: 100;
-            border: 1px dashed rgba(255, 255, 255, 0.8);
+            
+            /* Start Invisible (Animation handles visibility) */
+            border: 1px dashed rgba(255, 255, 255, 0);
             background-color: transparent;
+            
             cursor: crosshair;
             opacity: 0;
             transform: scale(0.8);
             transition: opacity 0.4s ease, transform 0.4s ease;
-            animation: pulse 2s infinite;
+            
+            /* UPDATED: Longer duration (4s) for more "rest" time */
+            animation: subtle-pulse 4s infinite;
         }
-        .hotspot.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
         
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        .hotspot.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        
+        /* UPDATED KEYFRAMES */
+        @keyframes subtle-pulse {
+            0% {
+                /* Start: 50% Opacity Border */
+                border-color: rgba(255, 255, 255, 0.5);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+            }
+            30% {
+                /* Fade out fairly quickly */
+                border-color: rgba(255, 255, 255, 0);
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+            100% {
+                /* Stay invisible for the rest of the 4s cycle */
+                border-color: rgba(255, 255, 255, 0);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
         }
 
         /* Animations */
@@ -120,7 +143,7 @@
             transition: opacity 0.5s, background 0.2s; pointer-events: none;
         }
         .btn.active { opacity: 1; pointer-events: auto; }
-        .btn.active:hover { background: rgba(255,255,255,0.2); }
+        .btn:hover { background: rgba(255,255,255,0.2); }
 
         /* BUILDER OUTPUT AREA */
         .builder-container {
@@ -288,7 +311,6 @@
             let diffX = currentX - startX;
             let diffY = currentY - startY;
 
-            // Force Square
             let size = Math.max(Math.abs(diffX), Math.abs(diffY));
 
             let newLeft = (diffX < 0) ? (startX - size) : startX;
@@ -320,18 +342,15 @@
                 return;
             }
 
-            // Generate JSON
             const perLeft = ((pixelLeft / rect.width) * 100).toFixed(1) + '%';
             const perTop = ((pixelTop / rect.height) * 100).toFixed(1) + '%';
             const perWidth = ((pixelWidth / rect.width) * 100).toFixed(1) + '%';
             const perHeight = ((pixelHeight / rect.height) * 100).toFixed(1) + '%';
             
-            // UPDATED: Added target: ''
             const outputString = `{ top: '${perTop}', left: '${perLeft}', width: '${perWidth}', height: '${perHeight}', target: '' }`;
             builderOutput.value = outputString;
             builderOutput.select();
 
-            // Generate Preview
             generatePreview(pixelLeft, pixelTop, pixelWidth, pixelHeight, rect.width, rect.height);
         }
 
@@ -349,7 +368,6 @@
                 const sourceW = Math.round(w * ratioX);
                 const sourceH = Math.round(h * ratioY);
 
-                // 10% Padding
                 const padding = Math.round(sourceW * 0.10);
 
                 const canvas = document.createElement('canvas');
@@ -396,18 +414,29 @@
             currentSceneId = id; updateUI();
         }
 
+        // --- UPDATED RENDER HOTSPOTS WITH INTERLEAVING ---
         function renderHotspots(list) {
             if (!list) return;
-            list.forEach(h => {
-                const spot = document.createElement('div'); spot.classList.add('hotspot');
+            list.forEach((h, index) => {
+                const spot = document.createElement('div');
+                spot.classList.add('hotspot');
+                
+                // Add interleaved delay
+                // Each hotspot waits 1.5s longer than the previous one before starting its loop
+                spot.style.animationDelay = (index * 1.5) + 's';
+
                 spot.style.top = h.top; spot.style.left = h.left;
                 spot.style.width = h.width; spot.style.height = h.height;
+                
                 spot.addEventListener('click', (e) => {
                     if(builderToggle.checked) return;
                     e.stopPropagation();
                     goForward(h.target, 'cinematic', h);
                 });
-                stage.appendChild(spot); setTimeout(() => spot.classList.add('visible'), 50);
+                
+                stage.appendChild(spot);
+                
+                setTimeout(() => spot.classList.add('visible'), 50);
             });
         }
 
