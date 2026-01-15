@@ -16,7 +16,8 @@ window.gameData = {
             { top: '10.2%', left: '12.8%', width: '8%', height: '8%', target: 'scene-A' },
             { top: '64%', left: '60%', width: '8%', height: '8%', target: 'scene-B' },
             { top: '13%', left: '70%', width: '8%', height: '8%', target: 'treehouse' },
-            { top: '32.7%', left: '63.0%', width: '5.6%', height: '5.6%', target: 'twohouses' }
+            { top: '32.7%', left: '63.0%', width: '5.6%', height: '5.6%', target: 'twohouses' },
+            { top: '6.5%', left: '63.2%', width: '7.2%', height: '7.2%', target: 'cave' }
         ]
     },
     'scene-A': {
@@ -73,4 +74,8 @@ window.gameData = {
         type: 'cinematic',
         hotspots: []
     },
-};
+    'cave': {
+        image: './cave.png',
+        type: 'cinematic',
+        hotspots: []
+    },};
