@@ -230,7 +230,7 @@
         const previewImage = document.getElementById('previewImage');
         const errorMsg = document.getElementById('errorMsg');
         
-        let currentSceneId = 'root';
+        let currentSceneId = 'main';
         let historyStack = [];
         let isAnimating = false;
 
@@ -239,8 +239,8 @@
         let startY = 0;
 
         function init() {
-            if (!scenes['root']) return;
-            renderScene('root');
+            if (!scenes['main']) return;
+            renderScene('main');
 
             stage.addEventListener('click', (e) => {
                 if (builderToggle.checked) return;
