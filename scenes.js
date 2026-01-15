@@ -24,11 +24,17 @@ window.gameData = {
         type: 'cinematic',
         hotspots: [
             // A smaller nested hotspot
-            { top: '1.3%', left: '38.8%', width: '8.6%', height: '8.6%', target: 'chestnut' }
+            { top: '1.3%', left: '38.8%', width: '8.6%', height: '8.6%', target: 'chestnut' },
+            { top: '30.0%', left: '43.8%', width: '10.2%', height: '10.2%', target: 'mushroom' }
         ]
     },
     'chestnut': {
         image: './chestnut.png',
+        type: 'cinematic',
+        hotspots: []
+    },
+    'mushroom': {
+        image: './mushroom.png',
         type: 'cinematic',
         hotspots: []
     },
