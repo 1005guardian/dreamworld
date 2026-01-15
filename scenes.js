@@ -13,7 +13,7 @@ window.gameData = {
         width: '1000px',
         height: '1000px',
         hotspots: [
-            { top: '10.2%', left: '12%', width: '8%', height: '8%', target: 'scene-A' },
+            { top: '10.2%', left: '12.2%', width: '8%', height: '8%', target: 'scene-A' },
             { top: '64%', left: '60%', width: '8%', height: '8%', target: 'scene-B' },
             { top: '13%', left: '70%', width: '8%', height: '8%', target: 'treehouse' },
             { top: '32.7%', left: '63.0%', width: '5.6%', height: '5.6%', target: 'twohouses' }
