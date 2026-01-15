@@ -14,7 +14,7 @@ window.gameData = {
         height: '1000px',
         hotspots: [
             { top: '10.2%', left: '12.8%', width: '8%', height: '8%', target: 'scene-A' },
-            { top: '64%', left: '60%', width: '8%', height: '8%', target: 'scene-B' },
+            { top: '64%', left: '60%', width: '8%', height: '8%', target: 'alchemy' },
             { top: '13%', left: '70%', width: '8%', height: '8%', target: 'treehouse' },
             { top: '32.7%', left: '63.0%', width: '5.6%', height: '5.6%', target: 'twohouses' },
             { top: '6.5%', left: '63.2%', width: '7.2%', height: '7.2%', target: 'cave' }
@@ -39,12 +39,13 @@ window.gameData = {
         type: 'cinematic',
         hotspots: []
     },
-    'scene-B': {
-        image: './thumbnail3_l.png',
+    'alchemy': {
+        image: './alchemy.png',
         type: 'cinematic',
         hotspots: [
             { top: '11.7%', left: '55.5%', width: '5.4%', height: '5.4%', target: 'palace' },
-            { top: '81.6%', left: '34.7%', width: '6.0%', height: '6.0%', target: 'lair' }
+            { top: '81.6%', left: '34.7%', width: '6.0%', height: '6.0%', target: 'lair' },
+            { top: '18.3%', left: '83.0%', width: '10.8%', height: '10.8%', target: 'spaceship' },
         ]
     },
     'treehouse': {
@@ -94,6 +95,11 @@ window.gameData = {
     },
     'teahouse': {
         image: './teahouse.png',
+        type: 'cinematic',
+        hotspots: []
+    },
+    'spaceship': {
+        image: './spaceship.png',
         type: 'cinematic',
         hotspots: []
     },
