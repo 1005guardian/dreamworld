@@ -21,7 +21,8 @@ window.gameData = {
         type: 'cinematic',
         hotspots: [
             { top: '1.3%', left: '38.8%', width: '8.6%', height: '8.6%', target: 'chestnut' },
-            { top: '30.0%', left: '43.8%', width: '10.2%', height: '10.2%', target: 'mushroomhouse' }
+            { top: '30.0%', left: '43.8%', width: '10.2%', height: '10.2%', target: 'mushroomhouse' },
+            { top: '32.7%', left: '53.2%', width: '6.7%', height: '6.7%', target: 'whitemush' },
         ]
     },
     'chestnut': {
@@ -82,6 +83,10 @@ window.gameData = {
         hotspots: []
     },
     'spaceship': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'whitemush': {
         type: 'cinematic',
         hotspots: []
     }
