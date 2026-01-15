@@ -54,7 +54,9 @@ window.gameData = {
     'twohouses': {
         image: './twohouses.png',
         type: 'cinematic',
-        hotspots: []
+        hotspots: [
+            { top: '72.6%', left: '51.1%', width: '11.6%', height: '11.6%', target: 'ancient' }
+        ]
     },
     'palace': {
         image: './palace.png',
@@ -63,6 +65,11 @@ window.gameData = {
     },
     'lair': {
         image: './lair.png',
+        type: 'cinematic',
+        hotspots: []
+    },
+    'ancient': {
+        image: './ancient.png',
         type: 'cinematic',
         hotspots: []
     },
