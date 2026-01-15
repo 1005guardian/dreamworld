@@ -34,7 +34,7 @@ window.gameData = {
         hotspots: []
     },
     'mushroom': {
-        image: './mushroom.png',
+        image: './mushroomhouse.png',
         type: 'cinematic',
         hotspots: []
     },
