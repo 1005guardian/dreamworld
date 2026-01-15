@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - With Preloading</title>
+    <title>Tree Zoom - Auto Image Paths</title>
     
     <script src="./scenes.js"></script>
 
@@ -234,7 +234,6 @@
         let historyStack = [];
         let isAnimating = false;
 
-        // Builder State
         let isDrawing = false;
         let startX = 0;
         let startY = 0;
@@ -257,6 +256,12 @@
 
             resetBtn.addEventListener('click', reset);
             backBtn.addEventListener('click', goBack);
+        }
+
+        // --- NEW HELPER: Auto-generate Image Path ---
+        function getImagePath(sceneId) {
+            // Simply use the ID plus .png
+            return `./${sceneId}.png`;
         }
 
         // --- DRAWING ---
@@ -320,7 +325,6 @@
             generatePreview(pixelLeft, pixelTop, pixelWidth, pixelHeight, rect.width, rect.height);
         }
 
-        // --- PREVIEW ---
         function generatePreview(x, y, w, h, stageW, stageH) {
             const currentImg = document.getElementById('current-img');
             errorMsg.style.display = 'none';
@@ -350,7 +354,6 @@
             }
         }
 
-        // --- HELPERS ---
         function createImg(src, classes) {
             const img = document.createElement('img');
             img.src = src;
@@ -365,13 +368,13 @@
             const data = scenes[id];
             stage.style.width = data.width || '100%'; stage.style.height = data.height || '100%';
             
-            const img = createImg(data.image, ['layer-image', 'active']);
+            // UPDATED: Use getImagePath(id)
+            const imgPath = getImagePath(id);
+            const img = createImg(imgPath, ['layer-image', 'active']);
             img.id = 'current-img';
             
             if (data.hotspots) {
                 renderHotspots(data.hotspots);
-                // --- NEW: PRELOAD LOGIC ---
-                // Immediately ask browser to download the next images
                 preloadNextImages(data.hotspots);
             }
             
@@ -397,20 +400,18 @@
             });
         }
 
-        // --- NEW: PRELOAD FUNCTION ---
         function preloadNextImages(hotspots) {
             hotspots.forEach(h => {
                 const targetId = h.target;
                 if (targetId && scenes[targetId]) {
-                    const imgUrl = scenes[targetId].image;
-                    // Standard way to cache images in JS
+                    // UPDATED: Use getImagePath(targetId)
+                    const imgUrl = getImagePath(targetId);
                     const preloader = new Image();
                     preloader.src = imgUrl;
                 }
             });
         }
 
-        // --- NAVIGATION ---
         function goForward(targetId, type, hotspotData = null) {
             if (isAnimating) return;
             if (!scenes[targetId]) return;
@@ -420,9 +421,12 @@
             const currentImg = document.getElementById('current-img');
             clearHotspots();
 
+            // UPDATED: Use getImagePath(targetId)
+            const nextPath = getImagePath(targetId);
+
             if (type === 'expand') {
                 stage.style.width = targetScene.width; stage.style.height = targetScene.height;
-                const nextImg = createImg(targetScene.image, ['layer-image', 'hidden']);
+                const nextImg = createImg(nextPath, ['layer-image', 'hidden']);
                 setTimeout(() => {
                     currentImg.classList.remove('active'); currentImg.classList.add('hidden');
                     nextImg.classList.remove('hidden'); nextImg.classList.add('active');
@@ -430,12 +434,11 @@
                     setTimeout(() => { currentImg.remove(); renderHotspots(targetScene.hotspots); isAnimating = false; }, 600);
                 }, 100);
             } else if (type === 'cinematic') {
-                const nextImg = createImg(targetScene.image, ['layer-image', 'animating-entry']);
+                const nextImg = createImg(nextPath, ['layer-image', 'animating-entry']);
                 setAnimationVars(hotspotData);
                 setTimeout(() => {
                     nextImg.classList.remove('animating-entry'); nextImg.classList.add('active');
                     nextImg.id = 'current-img'; currentImg.remove();
-                    // NEW: Hotspots are now rendered here too (and will trigger preloads)
                     renderHotspots(targetScene.hotspots);
                     if(targetScene.hotspots) preloadNextImages(targetScene.hotspots);
                     isAnimating = false;
@@ -452,9 +455,12 @@
             const currentImg = document.getElementById('current-img');
             clearHotspots();
 
+            // UPDATED: Use getImagePath(prevState.sceneId)
+            const prevPath = getImagePath(prevState.sceneId);
+
             if (prevState.type === 'expand') {
                 stage.style.width = prevScene.width; stage.style.height = prevScene.height;
-                const prevImg = createImg(prevScene.image, ['layer-image', 'hidden']);
+                const prevImg = createImg(prevPath, ['layer-image', 'hidden']);
                 setTimeout(() => {
                     currentImg.classList.remove('active'); currentImg.classList.add('hidden');
                     prevImg.classList.remove('hidden'); prevImg.classList.add('active');
@@ -469,7 +475,7 @@
                     }, 600);
                 }, 100);
             } else if (prevState.type === 'cinematic') {
-                const prevImg = createImg(prevScene.image, ['layer-image', 'background']);
+                const prevImg = createImg(prevPath, ['layer-image', 'background']);
                 setAnimationVars(prevState.hotspotUsed);
                 currentImg.classList.remove('active'); currentImg.classList.add('animating-exit');
                 setTimeout(() => {
