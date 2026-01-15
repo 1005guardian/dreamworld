@@ -24,11 +24,11 @@ window.gameData = {
         type: 'cinematic',
         hotspots: [
             // A smaller nested hotspot
-            { top: '30%', left: '30%', width: '8%', height: '8%', target: 'scene-A-depth' }
+            { top: '1.3%', left: '38.8%', width: '8.6%', height: '8.6%', target: 'house' }
         ]
     },
-    'scene-A-depth': {
-        image: './thumbnail1_l.png',
+    'house': {
+        image: './house.png',
         type: 'cinematic',
         hotspots: []
     },

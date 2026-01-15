@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - Faster & Clearer Hotspots</title>
+    <title>Tree Zoom - With Preloading</title>
     
     <script src="./scenes.js"></script>
 
@@ -60,45 +60,24 @@
         .layer-image.background { opacity: 1; z-index: 5; }
         .layer-image.hidden { opacity: 0; z-index: 1; }
 
-        /* --- HOTSPOTS (UPDATED: FASTER & LESS SUBTLE) --- */
+        /* --- HOTSPOTS --- */
         .hotspot {
             position: absolute; z-index: 100;
-            
-            /* Start invisible (animation handles opacity) */
             border: 1px dashed rgba(255, 255, 255, 0);
             background-color: transparent;
-            
             cursor: crosshair;
             opacity: 0;
             transform: scale(0.8);
             transition: opacity 0.4s ease, transform 0.4s ease;
-            
-            /* UPDATED: Faster cycle (2.5s instead of 4s) */
             animation: pulse-sequence 2.5s infinite;
         }
         
-        .hotspot.visible {
-            opacity: 1;
-            transform: scale(1);
-            pointer-events: auto;
-        }
+        .hotspot.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
         
-        /* UPDATED KEYFRAMES */
         @keyframes pulse-sequence {
-            0% {
-                /* UPDATED: Stronger start opacity (0.8 instead of 0.5) */
-                border-color: rgba(255, 255, 255, 0.8);
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
-            }
-            50% {
-                /* UPDATED: Stays visible longer (fade ends at 50% instead of 30%) */
-                border-color: rgba(255, 255, 255, 0);
-                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-            }
-            100% {
-                border-color: rgba(255, 255, 255, 0);
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-            }
+            0% { border-color: rgba(255, 255, 255, 0.8); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
+            50% { border-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { border-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
         }
 
         /* Animations */
@@ -188,7 +167,6 @@
             min-width: 150px;
         }
 
-        /* PREVIEW IMAGE STYLE */
         #previewImage {
             max-width: 100%;
             min-height: 50px;
@@ -256,6 +234,7 @@
         let historyStack = [];
         let isAnimating = false;
 
+        // Builder State
         let isDrawing = false;
         let startX = 0;
         let startY = 0;
@@ -385,19 +364,25 @@
             stage.appendChild(selectionBox);
             const data = scenes[id];
             stage.style.width = data.width || '100%'; stage.style.height = data.height || '100%';
-            const img = createImg(data.image, ['layer-image', 'active']); img.id = 'current-img';
-            if (data.hotspots) renderHotspots(data.hotspots);
+            
+            const img = createImg(data.image, ['layer-image', 'active']);
+            img.id = 'current-img';
+            
+            if (data.hotspots) {
+                renderHotspots(data.hotspots);
+                // --- NEW: PRELOAD LOGIC ---
+                // Immediately ask browser to download the next images
+                preloadNextImages(data.hotspots);
+            }
+            
             currentSceneId = id; updateUI();
         }
 
-        // --- UPDATED HOTSPOT RENDER ---
         function renderHotspots(list) {
             if (!list) return;
             list.forEach((h, index) => {
                 const spot = document.createElement('div');
                 spot.classList.add('hotspot');
-                
-                // UPDATED: Faster rotation (0.8s)
                 spot.style.animationDelay = (index * 0.8) + 's';
 
                 spot.style.top = h.top; spot.style.left = h.left;
@@ -409,6 +394,19 @@
                     goForward(h.target, 'cinematic', h);
                 });
                 stage.appendChild(spot); setTimeout(() => spot.classList.add('visible'), 50);
+            });
+        }
+
+        // --- NEW: PRELOAD FUNCTION ---
+        function preloadNextImages(hotspots) {
+            hotspots.forEach(h => {
+                const targetId = h.target;
+                if (targetId && scenes[targetId]) {
+                    const imgUrl = scenes[targetId].image;
+                    // Standard way to cache images in JS
+                    const preloader = new Image();
+                    preloader.src = imgUrl;
+                }
             });
         }
 
@@ -437,7 +435,10 @@
                 setTimeout(() => {
                     nextImg.classList.remove('animating-entry'); nextImg.classList.add('active');
                     nextImg.id = 'current-img'; currentImg.remove();
-                    renderHotspots(targetScene.hotspots); isAnimating = false;
+                    // NEW: Hotspots are now rendered here too (and will trigger preloads)
+                    renderHotspots(targetScene.hotspots);
+                    if(targetScene.hotspots) preloadNextImages(targetScene.hotspots);
+                    isAnimating = false;
                 }, 1200);
             }
             currentSceneId = targetId; updateUI(); selectionBox.style.display = 'none';
@@ -458,7 +459,14 @@
                     currentImg.classList.remove('active'); currentImg.classList.add('hidden');
                     prevImg.classList.remove('hidden'); prevImg.classList.add('active');
                     prevImg.id = 'current-img'; currentImg.id = '';
-                    setTimeout(() => { currentImg.remove(); if (prevState.sceneId !== 'root') renderHotspots(prevScene.hotspots); isAnimating = false; }, 600);
+                    setTimeout(() => {
+                        currentImg.remove();
+                        if (prevState.sceneId !== 'root') {
+                            renderHotspots(prevScene.hotspots);
+                            if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
+                        }
+                        isAnimating = false;
+                    }, 600);
                 }, 100);
             } else if (prevState.type === 'cinematic') {
                 const prevImg = createImg(prevScene.image, ['layer-image', 'background']);
@@ -466,7 +474,10 @@
                 currentImg.classList.remove('active'); currentImg.classList.add('animating-exit');
                 setTimeout(() => {
                     currentImg.remove(); prevImg.classList.remove('background'); prevImg.classList.add('active');
-                    prevImg.id = 'current-img'; renderHotspots(prevScene.hotspots); isAnimating = false;
+                    prevImg.id = 'current-img';
+                    renderHotspots(prevScene.hotspots);
+                    if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
+                    isAnimating = false;
                 }, 1200);
             }
             currentSceneId = prevState.sceneId; updateUI(); selectionBox.style.display = 'none';
