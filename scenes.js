@@ -56,7 +56,8 @@ window.gameData = {
         image: './twohouses.png',
         type: 'cinematic',
         hotspots: [
-            { top: '72.6%', left: '51.1%', width: '11.6%', height: '11.6%', target: 'ancient' }
+            { top: '72.6%', left: '51.1%', width: '11.6%', height: '11.6%', target: 'ancient' },
+            { top: '91.0%', left: '76.1%', width: '7.5%', height: '7.5%', target: 'pavilion' },
         ]
     },
     'palace': {
@@ -78,4 +79,10 @@ window.gameData = {
         image: './cave.png',
         type: 'cinematic',
         hotspots: []
-    },};
+    },
+    'pavilion': {
+        image: './pavilion.png',
+        type: 'cinematic',
+        hotspots: []
+    },
+};
