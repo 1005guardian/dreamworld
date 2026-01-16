@@ -29,6 +29,7 @@ window.gameData = {
             { top: '43.2%', left: '64.0%', width: '10.3%', height: '10.3%', target: 'plush' },
             { top: '64.0%', left: '12.3%', width: '11.3%', height: '11.3%', target: 'lotus' },
             { top: '43.1%', left: '86.6%', width: '10.7%', height: '10.7%', target: 'jellyfish' },
+            { top: '10.0%', left: '74.7%', width: '5.6%', height: '5.6%', target: 'shipwreck' },
         ]
     },
     'chestnut': {
@@ -123,6 +124,10 @@ window.gameData = {
         hotspots: []
     },
     'jellyfish': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'shipwreck': {
         type: 'cinematic',
         hotspots: []
     },
