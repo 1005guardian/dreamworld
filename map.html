@@ -18,6 +18,9 @@
         }
 
         h1 { margin-left: 20px; color: #aaa; font-size: 24px; }
+        
+        /* Style for the node counter */
+        .node-count { font-size: 0.6em; color: #666; margin-left: 10px; vertical-align: middle; }
 
         .tree-root {
             display: flex;
@@ -34,23 +37,18 @@
         .children-wrapper {
             display: flex;
             flex-direction: column;
-            /* FIXED: The gap of 60px is now perfectly bridged by lines */
             margin-left: 60px;
             position: relative;
         }
 
         .child-node {
             position: relative;
-            /* Padding removed so we can control lines via negative margins/positioning */
             padding-left: 0;
             padding-top: 15px;
             padding-bottom: 15px;
         }
 
-        /* --- CONNECTORS (FIXED MATH) --- */
-        
-        /* 1. Horizontal Arm (Child -> Left) */
-        /* Extends 30px to the left of the child card */
+        /* --- CONNECTORS --- */
         .child-node::before {
             content: '';
             position: absolute;
@@ -61,8 +59,6 @@
             background: #666;
         }
 
-        /* 2. Vertical Spine (Child -> Up/Down) */
-        /* Sits exactly at -30px (Middle of the 60px gap) */
         .child-node::after {
             content: '';
             position: absolute;
@@ -74,28 +70,21 @@
             height: 100%;
         }
 
-        /* 3. Logic to stop lines at the center */
-        
-        /* First Child: Line starts at 50% and goes down */
         .child-node:first-child::after {
             top: 50%;
             height: 50%;
         }
 
-        /* Last Child: Line starts at top and stops at 50% */
         .child-node:last-child::after {
             height: 50%;
             bottom: auto;
             top: 0;
         }
 
-        /* Only Child: No vertical line needed */
         .child-node:only-child::after {
             display: none;
         }
         
-        /* Parent Connector (Parent -> Right) */
-        /* Extends 30px to the right of the parent card */
         .has-children > .node-card {
             position: relative;
         }
@@ -157,7 +146,7 @@
 </head>
 <body>
 
-    <h1>Dreamworld Flow</h1>
+    <h1 id="pageTitle">Dreamworld Flow <span id="countDisplay" class="node-count"></span></h1>
     
     <div id="treeRoot" class="tree-root" style="margin-left: 20px;">
         </div>
@@ -167,6 +156,10 @@
         if (!scenes) { document.body.innerHTML = "<h1>Error: scenes.js not found</h1>"; }
 
         const rootId = 'main';
+
+        // --- NEW: Calculate and Display Total Nodes ---
+        const totalNodes = Object.keys(scenes).length;
+        document.getElementById('countDisplay').innerText = `(${totalNodes} Scenes)`;
 
         function buildTreeHTML(sceneId) {
             const data = scenes[sceneId];
