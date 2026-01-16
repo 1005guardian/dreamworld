@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - Auto Image Paths</title>
+    <title>Tree Zoom - Deep Linking</title>
     
     <script src="./scenes.js"></script>
 
@@ -21,7 +21,6 @@
             padding: 40px 0;
         }
 
-        /* --- THE STAGE --- */
         #stage {
             position: relative;
             background-color: #000;
@@ -36,7 +35,6 @@
             flex-shrink: 0;
         }
 
-        /* --- BUILDER SELECTION BOX --- */
         #selectionBox {
             position: absolute;
             border: 1px solid #ff0055;
@@ -47,7 +45,6 @@
             box-sizing: border-box;
         }
 
-        /* --- IMAGES --- */
         .layer-image {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -60,7 +57,6 @@
         .layer-image.background { opacity: 1; z-index: 5; }
         .layer-image.hidden { opacity: 0; z-index: 1; }
 
-        /* --- HOTSPOTS --- */
         .hotspot {
             position: absolute; z-index: 100;
             border: 1px dashed rgba(255, 255, 255, 0);
@@ -71,7 +67,6 @@
             transition: opacity 0.4s ease, transform 0.4s ease;
             animation: pulse-sequence 2.5s infinite;
         }
-        
         .hotspot.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
         
         @keyframes pulse-sequence {
@@ -80,7 +75,6 @@
             100% { border-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
         }
 
-        /* Animations */
         .animating-entry {
             z-index: 20; opacity: 1; border-radius: 0;
             box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
@@ -100,7 +94,6 @@
             100% { top: var(--start-top); left: var(--start-left); width: var(--start-width); height: var(--start-height); transform: translate(0, 0); }
         }
 
-        /* --- UI CONTROLS --- */
         .ui-panel {
             margin-top: 20px;
             display: flex;
@@ -138,49 +131,11 @@
             flex-wrap: wrap;
         }
 
-        .output-text-area {
-            flex: 2;
-            min-width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        #builderOutput {
-            width: 100%;
-            padding: 12px;
-            background: #111;
-            border: 1px solid #444;
-            color: #0f0;
-            font-family: monospace;
-            font-size: 14px;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .output-image-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            min-width: 150px;
-        }
-
-        #previewImage {
-            max-width: 100%;
-            min-height: 50px;
-            border: 2px solid #ff4444;
-            background: #000;
-            display: block;
-        }
-
-        .error-msg {
-            color: #ff4444;
-            font-size: 0.8rem;
-            text-align: center;
-            display: none;
-        }
+        .output-text-area { flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 5px; }
+        #builderOutput { width: 100%; padding: 12px; background: #111; border: 1px solid #444; color: #0f0; font-family: monospace; font-size: 14px; border-radius: 4px; box-sizing: border-box; }
+        .output-image-area { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 150px; }
+        #previewImage { max-width: 100%; min-height: 50px; border: 2px solid #ff4444; background: #000; display: block; }
+        .error-msg { color: #ff4444; font-size: 0.8rem; text-align: center; display: none; }
     </style>
 </head>
 <body>
@@ -233,15 +188,31 @@
         let currentSceneId = 'main';
         let historyStack = [];
         let isAnimating = false;
-
         let isDrawing = false;
-        let startX = 0;
-        let startY = 0;
+        let startX = 0; let startY = 0;
+
+        // --- PARENT MAPPING FOR DEEP LINKING ---
+        let parentMap = {}; // Will store: { childId: { parentId, hotspotData, type } }
 
         function init() {
             if (!scenes['main']) return;
-            renderScene('main');
 
+            // 1. Build the parent map so we can trace paths backward
+            buildParentMap();
+
+            // 2. Check URL for existing params
+            const urlParams = new URLSearchParams(window.location.search);
+            const sceneParam = urlParams.get('scene');
+
+            if (sceneParam && scenes[sceneParam]) {
+                // If deep link exists, restore full state
+                restoreState(sceneParam);
+            } else {
+                // Otherwise start fresh
+                renderScene('main');
+            }
+
+            // 3. Listeners
             stage.addEventListener('click', (e) => {
                 if (builderToggle.checked) return;
                 const currentScene = scenes[currentSceneId];
@@ -256,15 +227,261 @@
 
             resetBtn.addEventListener('click', reset);
             backBtn.addEventListener('click', goBack);
+
+            // 4. Handle Browser Back/Forward buttons
+            window.onpopstate = function(event) {
+                if(event.state && event.state.sceneId) {
+                    // Quick jump (no animation for browser back button for simplicity, or we could diff the stack)
+                    // For now, simpler to just restore the state found in history
+                    // But to keep it simple with our custom animations, we usually rely on our internal buttons.
+                    // If user hits browser back, we just re-render that scene directly.
+                    restoreState(event.state.sceneId);
+                } else {
+                    renderScene('main');
+                }
+            };
         }
 
-        // --- NEW HELPER: Auto-generate Image Path ---
-        function getImagePath(sceneId) {
-            // Simply use the ID plus .png
-            return `./${sceneId}.png`;
+        function getImagePath(sceneId) { return `./${sceneId}.png`; }
+
+        // --- DEEP LINKING LOGIC ---
+
+        function buildParentMap() {
+            // Iterate over all scenes to find who points to whom
+            for (const [parentId, data] of Object.entries(scenes)) {
+                // Check clickTarget (Root -> Meadow)
+                if (data.clickTarget) {
+                    parentMap[data.clickTarget] = {
+                        parentId: parentId,
+                        hotspotData: null,
+                        type: 'expand'
+                    };
+                }
+                // Check hotspots (Meadow -> Children)
+                if (data.hotspots) {
+                    data.hotspots.forEach(h => {
+                        parentMap[h.target] = {
+                            parentId: parentId,
+                            hotspotData: h,
+                            type: 'cinematic'
+                        };
+                    });
+                }
+            }
         }
 
-        // --- DRAWING ---
+        function restoreState(targetId) {
+            // If target is main, just render
+            if (targetId === 'main') {
+                reset();
+                return;
+            }
+
+            // Trace path from Target backwards to Main
+            const path = [];
+            let curr = targetId;
+            while (curr !== 'main') {
+                const parentInfo = parentMap[curr];
+                if (!parentInfo) break; // Orphaned scene or root
+                
+                // Add to path (Parent -> Child transition info)
+                path.unshift({
+                    sceneId: parentInfo.parentId, // The scene we are LEAVING
+                    type: parentInfo.type,        // The transition type used
+                    hotspotUsed: parentInfo.hotspotData // The hotspot used
+                });
+                curr = parentInfo.parentId;
+            }
+
+            // Restore History Stack
+            historyStack = path;
+            currentSceneId = targetId;
+
+            // Update URL without reloading
+            updateURL(targetId);
+
+            // Render final scene immediately (skip animations for restoration)
+            renderScene(targetId);
+        }
+
+        function updateURL(sceneId) {
+            const url = new URL(window.location);
+            if (sceneId === 'main') {
+                url.searchParams.delete('scene');
+            } else {
+                url.searchParams.set('scene', sceneId);
+            }
+            // Push to browser history so Back button works
+            window.history.pushState({ sceneId: sceneId }, '', url);
+        }
+
+        // --- NAVIGATION ---
+
+        function goForward(targetId, type, hotspotData = null) {
+            if (isAnimating) return;
+            if (!scenes[targetId]) return;
+
+            isAnimating = true;
+            historyStack.push({ sceneId: currentSceneId, type: type, hotspotUsed: hotspotData });
+            
+            const targetScene = scenes[targetId];
+            const currentImg = document.getElementById('current-img');
+            clearHotspots();
+
+            const nextPath = getImagePath(targetId);
+
+            // Update URL
+            updateURL(targetId);
+
+            if (type === 'expand') {
+                stage.style.width = targetScene.width; stage.style.height = targetScene.height;
+                const nextImg = createImg(nextPath, ['layer-image', 'hidden']);
+                setTimeout(() => {
+                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
+                    nextImg.classList.remove('hidden'); nextImg.classList.add('active');
+                    nextImg.id = 'current-img'; currentImg.id = '';
+                    setTimeout(() => { currentImg.remove(); renderHotspots(targetScene.hotspots); isAnimating = false; }, 600);
+                }, 100);
+            } else if (type === 'cinematic') {
+                const nextImg = createImg(nextPath, ['layer-image', 'animating-entry']);
+                setAnimationVars(hotspotData);
+                setTimeout(() => {
+                    nextImg.classList.remove('animating-entry'); nextImg.classList.add('active');
+                    nextImg.id = 'current-img'; currentImg.remove();
+                    renderHotspots(targetScene.hotspots);
+                    if(targetScene.hotspots) preloadNextImages(targetScene.hotspots);
+                    isAnimating = false;
+                }, 1200);
+            }
+            currentSceneId = targetId; updateUI(); selectionBox.style.display = 'none';
+        }
+
+        function goBack() {
+            if (historyStack.length === 0 || isAnimating) return;
+            isAnimating = true;
+            
+            const prevState = historyStack.pop();
+            const prevScene = scenes[prevState.sceneId]; // The scene we are going BACK to
+            const currentImg = document.getElementById('current-img');
+            
+            clearHotspots();
+
+            const prevPath = getImagePath(prevState.sceneId);
+
+            // Update URL to previous scene
+            updateURL(prevState.sceneId);
+
+            if (prevState.type === 'expand') {
+                stage.style.width = prevScene.width; stage.style.height = prevScene.height;
+                const prevImg = createImg(prevPath, ['layer-image', 'hidden']);
+                setTimeout(() => {
+                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
+                    prevImg.classList.remove('hidden'); prevImg.classList.add('active');
+                    prevImg.id = 'current-img'; currentImg.id = '';
+                    setTimeout(() => {
+                        currentImg.remove();
+                        if (prevState.sceneId !== 'main') { // Changed 'root' to 'main' logic
+                            renderHotspots(prevScene.hotspots);
+                            if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
+                        }
+                        isAnimating = false;
+                    }, 600);
+                }, 100);
+            } else if (prevState.type === 'cinematic') {
+                const prevImg = createImg(prevPath, ['layer-image', 'background']);
+                setAnimationVars(prevState.hotspotUsed);
+                currentImg.classList.remove('active'); currentImg.classList.add('animating-exit');
+                setTimeout(() => {
+                    currentImg.remove(); prevImg.classList.remove('background'); prevImg.classList.add('active');
+                    prevImg.id = 'current-img';
+                    renderHotspots(prevScene.hotspots);
+                    if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
+                    isAnimating = false;
+                }, 1200);
+            }
+            currentSceneId = prevState.sceneId; updateUI(); selectionBox.style.display = 'none';
+        }
+
+        function reset() {
+            if (isAnimating) return;
+            historyStack = [];
+            updateURL('main');
+            renderScene('main');
+        }
+
+        // --- STANDARD RENDER & HELPERS ---
+
+        function renderScene(id) {
+            stage.innerHTML = '';
+            stage.appendChild(selectionBox);
+            const data = scenes[id];
+            stage.style.width = data.width || '100%'; stage.style.height = data.height || '100%';
+            
+            const imgPath = getImagePath(id);
+            const img = createImg(imgPath, ['layer-image', 'active']);
+            img.id = 'current-img';
+            
+            if (data.hotspots) {
+                renderHotspots(data.hotspots);
+                preloadNextImages(data.hotspots);
+            }
+            
+            currentSceneId = id; updateUI();
+        }
+
+        function createImg(src, classes) {
+            const img = document.createElement('img');
+            img.src = src;
+            img.classList.add(...classes);
+            stage.appendChild(img);
+            return img;
+        }
+
+        function renderHotspots(list) {
+            if (!list) return;
+            list.forEach((h, index) => {
+                const spot = document.createElement('div');
+                spot.classList.add('hotspot');
+                spot.style.animationDelay = (index * 0.8) + 's';
+                spot.style.top = h.top; spot.style.left = h.left;
+                spot.style.width = h.width; spot.style.height = h.height;
+                spot.addEventListener('click', (e) => {
+                    if(builderToggle.checked) return;
+                    e.stopPropagation();
+                    goForward(h.target, 'cinematic', h);
+                });
+                stage.appendChild(spot); setTimeout(() => spot.classList.add('visible'), 50);
+            });
+        }
+
+        function clearHotspots() { document.querySelectorAll('.hotspot').forEach(el => el.remove()); }
+        
+        function setAnimationVars(h) {
+            if (!h) return;
+            stage.style.setProperty('--start-top', h.top); stage.style.setProperty('--start-left', h.left);
+            stage.style.setProperty('--start-width', h.width); stage.style.setProperty('--start-height', h.height);
+        }
+
+        function preloadNextImages(hotspots) {
+            hotspots.forEach(h => {
+                const targetId = h.target;
+                if (targetId && scenes[targetId]) {
+                    const imgUrl = getImagePath(targetId);
+                    const preloader = new Image();
+                    preloader.src = imgUrl;
+                }
+            });
+        }
+
+        function updateUI() {
+            if (currentSceneId !== 'main') {
+                backBtn.classList.add('active'); resetBtn.classList.add('active'); stage.style.cursor = 'default';
+            } else {
+                backBtn.classList.remove('active'); resetBtn.classList.remove('active'); stage.style.cursor = 'pointer';
+            }
+        }
+
+        // --- DRAWING & PREVIEW LOGIC (Unchanged) ---
         function startDraw(e) {
             if (!builderToggle.checked) return;
             e.preventDefault();
@@ -348,158 +565,11 @@
                 ctx.drawImage(currentImg, sourceX, sourceY, sourceW, sourceH, padding, padding, sourceW, sourceH);
                 previewImage.src = canvas.toDataURL('image/png');
             } catch (err) {
-                console.warn("Image Export Failed (Canvas Tainted)");
-                errorMsg.innerText = "Preview blocked by browser security (Tainted Canvas). Use Local Server.";
+                console.warn("Image Export Failed");
+                errorMsg.innerText = "Preview blocked (Tainted Canvas). Use Local Server.";
                 errorMsg.style.display = 'block';
             }
         }
-
-        function createImg(src, classes) {
-            const img = document.createElement('img');
-            img.src = src;
-            img.classList.add(...classes);
-            stage.appendChild(img);
-            return img;
-        }
-
-        function renderScene(id) {
-            stage.innerHTML = '';
-            stage.appendChild(selectionBox);
-            const data = scenes[id];
-            stage.style.width = data.width || '100%'; stage.style.height = data.height || '100%';
-            
-            // UPDATED: Use getImagePath(id)
-            const imgPath = getImagePath(id);
-            const img = createImg(imgPath, ['layer-image', 'active']);
-            img.id = 'current-img';
-            
-            if (data.hotspots) {
-                renderHotspots(data.hotspots);
-                preloadNextImages(data.hotspots);
-            }
-            
-            currentSceneId = id; updateUI();
-        }
-
-        function renderHotspots(list) {
-            if (!list) return;
-            list.forEach((h, index) => {
-                const spot = document.createElement('div');
-                spot.classList.add('hotspot');
-                spot.style.animationDelay = (index * 0.8) + 's';
-
-                spot.style.top = h.top; spot.style.left = h.left;
-                spot.style.width = h.width; spot.style.height = h.height;
-                
-                spot.addEventListener('click', (e) => {
-                    if(builderToggle.checked) return;
-                    e.stopPropagation();
-                    goForward(h.target, 'cinematic', h);
-                });
-                stage.appendChild(spot); setTimeout(() => spot.classList.add('visible'), 50);
-            });
-        }
-
-        function preloadNextImages(hotspots) {
-            hotspots.forEach(h => {
-                const targetId = h.target;
-                if (targetId && scenes[targetId]) {
-                    // UPDATED: Use getImagePath(targetId)
-                    const imgUrl = getImagePath(targetId);
-                    const preloader = new Image();
-                    preloader.src = imgUrl;
-                }
-            });
-        }
-
-        function goForward(targetId, type, hotspotData = null) {
-            if (isAnimating) return;
-            if (!scenes[targetId]) return;
-            isAnimating = true;
-            historyStack.push({ sceneId: currentSceneId, type: type, hotspotUsed: hotspotData });
-            const targetScene = scenes[targetId];
-            const currentImg = document.getElementById('current-img');
-            clearHotspots();
-
-            // UPDATED: Use getImagePath(targetId)
-            const nextPath = getImagePath(targetId);
-
-            if (type === 'expand') {
-                stage.style.width = targetScene.width; stage.style.height = targetScene.height;
-                const nextImg = createImg(nextPath, ['layer-image', 'hidden']);
-                setTimeout(() => {
-                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
-                    nextImg.classList.remove('hidden'); nextImg.classList.add('active');
-                    nextImg.id = 'current-img'; currentImg.id = '';
-                    setTimeout(() => { currentImg.remove(); renderHotspots(targetScene.hotspots); isAnimating = false; }, 600);
-                }, 100);
-            } else if (type === 'cinematic') {
-                const nextImg = createImg(nextPath, ['layer-image', 'animating-entry']);
-                setAnimationVars(hotspotData);
-                setTimeout(() => {
-                    nextImg.classList.remove('animating-entry'); nextImg.classList.add('active');
-                    nextImg.id = 'current-img'; currentImg.remove();
-                    renderHotspots(targetScene.hotspots);
-                    if(targetScene.hotspots) preloadNextImages(targetScene.hotspots);
-                    isAnimating = false;
-                }, 1200);
-            }
-            currentSceneId = targetId; updateUI(); selectionBox.style.display = 'none';
-        }
-
-        function goBack() {
-            if (historyStack.length === 0 || isAnimating) return;
-            isAnimating = true;
-            const prevState = historyStack.pop();
-            const prevScene = scenes[prevState.sceneId];
-            const currentImg = document.getElementById('current-img');
-            clearHotspots();
-
-            // UPDATED: Use getImagePath(prevState.sceneId)
-            const prevPath = getImagePath(prevState.sceneId);
-
-            if (prevState.type === 'expand') {
-                stage.style.width = prevScene.width; stage.style.height = prevScene.height;
-                const prevImg = createImg(prevPath, ['layer-image', 'hidden']);
-                setTimeout(() => {
-                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
-                    prevImg.classList.remove('hidden'); prevImg.classList.add('active');
-                    prevImg.id = 'current-img'; currentImg.id = '';
-                    setTimeout(() => {
-                        currentImg.remove();
-                        if (prevState.sceneId !== 'root') {
-                            renderHotspots(prevScene.hotspots);
-                            if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
-                        }
-                        isAnimating = false;
-                    }, 600);
-                }, 100);
-            } else if (prevState.type === 'cinematic') {
-                const prevImg = createImg(prevPath, ['layer-image', 'background']);
-                setAnimationVars(prevState.hotspotUsed);
-                currentImg.classList.remove('active'); currentImg.classList.add('animating-exit');
-                setTimeout(() => {
-                    currentImg.remove(); prevImg.classList.remove('background'); prevImg.classList.add('active');
-                    prevImg.id = 'current-img';
-                    renderHotspots(prevScene.hotspots);
-                    if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
-                    isAnimating = false;
-                }, 1200);
-            }
-            currentSceneId = prevState.sceneId; updateUI(); selectionBox.style.display = 'none';
-        }
-
-        function clearHotspots() { document.querySelectorAll('.hotspot').forEach(el => el.remove()); }
-        function setAnimationVars(h) {
-            if (!h) return;
-            stage.style.setProperty('--start-top', h.top); stage.style.setProperty('--start-left', h.left);
-            stage.style.setProperty('--start-width', h.width); stage.style.setProperty('--start-height', h.height);
-        }
-        function updateUI() {
-            if (currentSceneId !== 'root') { backBtn.classList.add('active'); resetBtn.classList.add('active'); stage.style.cursor = 'default'; }
-            else { backBtn.classList.remove('active'); resetBtn.classList.remove('active'); stage.style.cursor = 'pointer'; }
-        }
-        function reset() { if (isAnimating) return; historyStack = []; renderScene('root'); }
         
         init();
     </script>

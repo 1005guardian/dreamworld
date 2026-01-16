@@ -14,7 +14,8 @@ window.gameData = {
             { top: '64.4%', left: '60.2%', width: '8%', height: '8%', target: 'alchemy' },
             { top: '13%', left: '70%', width: '8%', height: '8%', target: 'treehouse' },
             { top: '32.7%', left: '63.0%', width: '5.6%', height: '5.6%', target: 'twohouses' },
-            { top: '6.5%', left: '63.2%', width: '7.2%', height: '7.2%', target: 'cave' }
+            { top: '6.5%', left: '63.2%', width: '7.2%', height: '7.2%', target: 'cave' },
+            { top: '60.7%', left: '44.0%', width: '6.9%', height: '6.9%', target: 'greenmonster' }
         ]
     },
     'redspots': {
@@ -92,6 +93,10 @@ window.gameData = {
         hotspots: []
     },
     'plush': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'greenmonster': {
         type: 'cinematic',
         hotspots: []
     },
