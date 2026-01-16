@@ -78,7 +78,9 @@ window.gameData = {
     },
     'cave': {
         type: 'cinematic',
-        hotspots: []
+        hotspots: [
+           { top: '33.3%', left: '49.2%', width: '5.4%', height: '5.4%', target: 'desert' },
+        ]
     },
     'pavilion': {
         type: 'cinematic',
@@ -133,6 +135,10 @@ window.gameData = {
         hotspots: []
     },
     'brownmush': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'desert': {
         type: 'cinematic',
         hotspots: []
     },
