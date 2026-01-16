@@ -18,8 +18,6 @@
         }
 
         h1 { margin-left: 20px; color: #aaa; font-size: 24px; }
-        
-        /* Style for the node counter */
         .node-count { font-size: 0.6em; color: #666; margin-left: 10px; vertical-align: middle; }
 
         .tree-root {
@@ -98,13 +96,17 @@
             background: #666;
         }
 
-        /* --- CARD STYLING --- */
+        /* --- CARD STYLING (UPDATED) --- */
         .node-card {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            /* UPDATED: Stack vertically */
+            flex-direction: column;
+            align-items: center; /* Center horizontally */
+            justify-content: center;
+            gap: 10px;
+            
             border: 1px solid #444;
-            padding: 10px;
+            padding: 12px;
             text-decoration: none;
             color: #fff;
             background: #2a2a2a;
@@ -112,14 +114,18 @@
             transition: all 0.2s;
             position: relative;
             z-index: 10;
-            min-width: 180px;
+            
+            /* UPDATED: Sizing for vertical layout */
+            min-width: 120px;
+            text-align: center;
+            
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         .node-card:hover {
             background: #333;
             border-color: #ff0055;
-            transform: translateX(5px);
+            transform: scale(1.05); /* Slight zoom looks better for vertical cards */
             box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
             z-index: 20;
         }
@@ -135,11 +141,14 @@
         }
 
         .node-name {
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: bold;
             color: #eee;
+            /* Ensure text doesn't overflow weirdly */
+            max-width: 120px;
+            word-wrap: break-word;
         }
 
     </style>
@@ -157,7 +166,6 @@
 
         const rootId = 'main';
 
-        // --- NEW: Calculate and Display Total Nodes ---
         const totalNodes = Object.keys(scenes).length;
         document.getElementById('countDisplay').innerText = `(${totalNodes} Scenes)`;
 
