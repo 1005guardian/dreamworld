@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - Deep Linking</title>
+    <title>Tree Zoom - Deep Linking Fixed</title>
     
     <script src="./scenes.js"></script>
 
@@ -28,6 +28,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
                         height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Initial fallback size */
             width: 150px;
             height: 150px;
             cursor: pointer;
@@ -116,7 +117,6 @@
         .btn.active { opacity: 1; pointer-events: auto; }
         .btn:hover { background: rgba(255,255,255,0.2); }
 
-        /* BUILDER OUTPUT AREA */
         .builder-container {
             display: flex;
             flex-direction: row;
@@ -191,28 +191,22 @@
         let isDrawing = false;
         let startX = 0; let startY = 0;
 
-        // --- PARENT MAPPING FOR DEEP LINKING ---
-        let parentMap = {}; // Will store: { childId: { parentId, hotspotData, type } }
+        let parentMap = {};
 
         function init() {
             if (!scenes['main']) return;
 
-            // 1. Build the parent map so we can trace paths backward
             buildParentMap();
 
-            // 2. Check URL for existing params
             const urlParams = new URLSearchParams(window.location.search);
             const sceneParam = urlParams.get('scene');
 
             if (sceneParam && scenes[sceneParam]) {
-                // If deep link exists, restore full state
                 restoreState(sceneParam);
             } else {
-                // Otherwise start fresh
                 renderScene('main');
             }
 
-            // 3. Listeners
             stage.addEventListener('click', (e) => {
                 if (builderToggle.checked) return;
                 const currentScene = scenes[currentSceneId];
@@ -228,13 +222,8 @@
             resetBtn.addEventListener('click', reset);
             backBtn.addEventListener('click', goBack);
 
-            // 4. Handle Browser Back/Forward buttons
             window.onpopstate = function(event) {
                 if(event.state && event.state.sceneId) {
-                    // Quick jump (no animation for browser back button for simplicity, or we could diff the stack)
-                    // For now, simpler to just restore the state found in history
-                    // But to keep it simple with our custom animations, we usually rely on our internal buttons.
-                    // If user hits browser back, we just re-render that scene directly.
                     restoreState(event.state.sceneId);
                 } else {
                     renderScene('main');
@@ -244,26 +233,17 @@
 
         function getImagePath(sceneId) { return `./${sceneId}.png`; }
 
-        // --- DEEP LINKING LOGIC ---
-
         function buildParentMap() {
-            // Iterate over all scenes to find who points to whom
             for (const [parentId, data] of Object.entries(scenes)) {
-                // Check clickTarget (Root -> Meadow)
                 if (data.clickTarget) {
                     parentMap[data.clickTarget] = {
-                        parentId: parentId,
-                        hotspotData: null,
-                        type: 'expand'
+                        parentId: parentId, hotspotData: null, type: 'expand'
                     };
                 }
-                // Check hotspots (Meadow -> Children)
                 if (data.hotspots) {
                     data.hotspots.forEach(h => {
                         parentMap[h.target] = {
-                            parentId: parentId,
-                            hotspotData: h,
-                            type: 'cinematic'
+                            parentId: parentId, hotspotData: h, type: 'cinematic'
                         };
                     });
                 }
@@ -271,36 +251,28 @@
         }
 
         function restoreState(targetId) {
-            // If target is main, just render
             if (targetId === 'main') {
                 reset();
                 return;
             }
 
-            // Trace path from Target backwards to Main
             const path = [];
             let curr = targetId;
             while (curr !== 'main') {
                 const parentInfo = parentMap[curr];
-                if (!parentInfo) break; // Orphaned scene or root
+                if (!parentInfo) break;
                 
-                // Add to path (Parent -> Child transition info)
                 path.unshift({
-                    sceneId: parentInfo.parentId, // The scene we are LEAVING
-                    type: parentInfo.type,        // The transition type used
-                    hotspotUsed: parentInfo.hotspotData // The hotspot used
+                    sceneId: parentInfo.parentId,
+                    type: parentInfo.type,
+                    hotspotUsed: parentInfo.hotspotData
                 });
                 curr = parentInfo.parentId;
             }
 
-            // Restore History Stack
             historyStack = path;
             currentSceneId = targetId;
-
-            // Update URL without reloading
             updateURL(targetId);
-
-            // Render final scene immediately (skip animations for restoration)
             renderScene(targetId);
         }
 
@@ -311,116 +283,41 @@
             } else {
                 url.searchParams.set('scene', sceneId);
             }
-            // Push to browser history so Back button works
             window.history.pushState({ sceneId: sceneId }, '', url);
         }
 
-        // --- NAVIGATION ---
-
-        function goForward(targetId, type, hotspotData = null) {
-            if (isAnimating) return;
-            if (!scenes[targetId]) return;
-
-            isAnimating = true;
-            historyStack.push({ sceneId: currentSceneId, type: type, hotspotUsed: hotspotData });
-            
-            const targetScene = scenes[targetId];
-            const currentImg = document.getElementById('current-img');
-            clearHotspots();
-
-            const nextPath = getImagePath(targetId);
-
-            // Update URL
-            updateURL(targetId);
-
-            if (type === 'expand') {
-                stage.style.width = targetScene.width; stage.style.height = targetScene.height;
-                const nextImg = createImg(nextPath, ['layer-image', 'hidden']);
-                setTimeout(() => {
-                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
-                    nextImg.classList.remove('hidden'); nextImg.classList.add('active');
-                    nextImg.id = 'current-img'; currentImg.id = '';
-                    setTimeout(() => { currentImg.remove(); renderHotspots(targetScene.hotspots); isAnimating = false; }, 600);
-                }, 100);
-            } else if (type === 'cinematic') {
-                const nextImg = createImg(nextPath, ['layer-image', 'animating-entry']);
-                setAnimationVars(hotspotData);
-                setTimeout(() => {
-                    nextImg.classList.remove('animating-entry'); nextImg.classList.add('active');
-                    nextImg.id = 'current-img'; currentImg.remove();
-                    renderHotspots(targetScene.hotspots);
-                    if(targetScene.hotspots) preloadNextImages(targetScene.hotspots);
-                    isAnimating = false;
-                }, 1200);
-            }
-            currentSceneId = targetId; updateUI(); selectionBox.style.display = 'none';
-        }
-
-        function goBack() {
-            if (historyStack.length === 0 || isAnimating) return;
-            isAnimating = true;
-            
-            const prevState = historyStack.pop();
-            const prevScene = scenes[prevState.sceneId]; // The scene we are going BACK to
-            const currentImg = document.getElementById('current-img');
-            
-            clearHotspots();
-
-            const prevPath = getImagePath(prevState.sceneId);
-
-            // Update URL to previous scene
-            updateURL(prevState.sceneId);
-
-            if (prevState.type === 'expand') {
-                stage.style.width = prevScene.width; stage.style.height = prevScene.height;
-                const prevImg = createImg(prevPath, ['layer-image', 'hidden']);
-                setTimeout(() => {
-                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
-                    prevImg.classList.remove('hidden'); prevImg.classList.add('active');
-                    prevImg.id = 'current-img'; currentImg.id = '';
-                    setTimeout(() => {
-                        currentImg.remove();
-                        if (prevState.sceneId !== 'main') { // Changed 'root' to 'main' logic
-                            renderHotspots(prevScene.hotspots);
-                            if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
-                        }
-                        isAnimating = false;
-                    }, 600);
-                }, 100);
-            } else if (prevState.type === 'cinematic') {
-                const prevImg = createImg(prevPath, ['layer-image', 'background']);
-                setAnimationVars(prevState.hotspotUsed);
-                currentImg.classList.remove('active'); currentImg.classList.add('animating-exit');
-                setTimeout(() => {
-                    currentImg.remove(); prevImg.classList.remove('background'); prevImg.classList.add('active');
-                    prevImg.id = 'current-img';
-                    renderHotspots(prevScene.hotspots);
-                    if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
-                    isAnimating = false;
-                }, 1200);
-            }
-            currentSceneId = prevState.sceneId; updateUI(); selectionBox.style.display = 'none';
-        }
-
-        function reset() {
-            if (isAnimating) return;
-            historyStack = [];
-            updateURL('main');
-            renderScene('main');
-        }
-
-        // --- STANDARD RENDER & HELPERS ---
-
+        // --- UPDATED RENDER SCENE (FIXED RECURSIVE SIZE LOOKUP) ---
         function renderScene(id) {
             stage.innerHTML = '';
             stage.appendChild(selectionBox);
-            const data = scenes[id];
-            stage.style.width = data.width || '100%'; stage.style.height = data.height || '100%';
             
+            const data = scenes[id];
+            
+            // 1. Calculate Width/Height (Recursive Lookup)
+            // If current scene doesn't have dimensions, walk up parentMap until we find them.
+            let width = data.width;
+            let height = data.height;
+            let curr = id;
+
+            // Loop until we find dimensions or run out of parents
+            while ((!width || !height) && parentMap[curr]) {
+                curr = parentMap[curr].parentId;
+                if (scenes[curr]) {
+                    if (!width) width = scenes[curr].width;
+                    if (!height) height = scenes[curr].height;
+                }
+            }
+
+            // Fallback if nothing found (though expanding logic implies root always has it)
+            stage.style.width = width || '100%';
+            stage.style.height = height || '100%';
+            
+            // 2. Render Image
             const imgPath = getImagePath(id);
             const img = createImg(imgPath, ['layer-image', 'active']);
             img.id = 'current-img';
             
+            // 3. Render Hotspots
             if (data.hotspots) {
                 renderHotspots(data.hotspots);
                 preloadNextImages(data.hotspots);
@@ -428,6 +325,8 @@
             
             currentSceneId = id; updateUI();
         }
+
+        // --- STANDARD FUNCTIONS ---
 
         function createImg(src, classes) {
             const img = document.createElement('img');
@@ -481,7 +380,94 @@
             }
         }
 
-        // --- DRAWING & PREVIEW LOGIC (Unchanged) ---
+        function goForward(targetId, type, hotspotData = null) {
+            if (isAnimating) return;
+            if (!scenes[targetId]) return;
+
+            isAnimating = true;
+            historyStack.push({ sceneId: currentSceneId, type: type, hotspotUsed: hotspotData });
+            
+            const targetScene = scenes[targetId];
+            const currentImg = document.getElementById('current-img');
+            clearHotspots();
+
+            const nextPath = getImagePath(targetId);
+            updateURL(targetId);
+
+            if (type === 'expand') {
+                stage.style.width = targetScene.width; stage.style.height = targetScene.height;
+                const nextImg = createImg(nextPath, ['layer-image', 'hidden']);
+                setTimeout(() => {
+                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
+                    nextImg.classList.remove('hidden'); nextImg.classList.add('active');
+                    nextImg.id = 'current-img'; currentImg.id = '';
+                    setTimeout(() => { currentImg.remove(); renderHotspots(targetScene.hotspots); isAnimating = false; }, 600);
+                }, 100);
+            } else if (type === 'cinematic') {
+                const nextImg = createImg(nextPath, ['layer-image', 'animating-entry']);
+                setAnimationVars(hotspotData);
+                setTimeout(() => {
+                    nextImg.classList.remove('animating-entry'); nextImg.classList.add('active');
+                    nextImg.id = 'current-img'; currentImg.remove();
+                    renderHotspots(targetScene.hotspots);
+                    if(targetScene.hotspots) preloadNextImages(targetScene.hotspots);
+                    isAnimating = false;
+                }, 1200);
+            }
+            currentSceneId = targetId; updateUI(); selectionBox.style.display = 'none';
+        }
+
+        function goBack() {
+            if (historyStack.length === 0 || isAnimating) return;
+            isAnimating = true;
+            
+            const prevState = historyStack.pop();
+            const prevScene = scenes[prevState.sceneId];
+            const currentImg = document.getElementById('current-img');
+            clearHotspots();
+
+            const prevPath = getImagePath(prevState.sceneId);
+            updateURL(prevState.sceneId);
+
+            if (prevState.type === 'expand') {
+                stage.style.width = prevScene.width; stage.style.height = prevScene.height;
+                const prevImg = createImg(prevPath, ['layer-image', 'hidden']);
+                setTimeout(() => {
+                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
+                    prevImg.classList.remove('hidden'); prevImg.classList.add('active');
+                    prevImg.id = 'current-img'; currentImg.id = '';
+                    setTimeout(() => {
+                        currentImg.remove();
+                        if (prevState.sceneId !== 'main') {
+                            renderHotspots(prevScene.hotspots);
+                            if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
+                        }
+                        isAnimating = false;
+                    }, 600);
+                }, 100);
+            } else if (prevState.type === 'cinematic') {
+                const prevImg = createImg(prevPath, ['layer-image', 'background']);
+                setAnimationVars(prevState.hotspotUsed);
+                currentImg.classList.remove('active'); currentImg.classList.add('animating-exit');
+                setTimeout(() => {
+                    currentImg.remove(); prevImg.classList.remove('background'); prevImg.classList.add('active');
+                    prevImg.id = 'current-img';
+                    renderHotspots(prevScene.hotspots);
+                    if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
+                    isAnimating = false;
+                }, 1200);
+            }
+            currentSceneId = prevState.sceneId; updateUI(); selectionBox.style.display = 'none';
+        }
+
+        function reset() {
+            if (isAnimating) return;
+            historyStack = [];
+            updateURL('main');
+            renderScene('main');
+        }
+
+        // --- DRAWING LOGIC (Unchanged) ---
         function startDraw(e) {
             if (!builderToggle.checked) return;
             e.preventDefault();
