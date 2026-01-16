@@ -25,6 +25,7 @@ window.gameData = {
             { top: '30.0%', left: '43.8%', width: '10.2%', height: '10.2%', target: 'mushroomhouse' },
             { top: '32.7%', left: '53.2%', width: '6.7%', height: '6.7%', target: 'whitemush' },
             { top: '43.2%', left: '64.0%', width: '10.3%', height: '10.3%', target: 'plush' },
+            { top: '64.0%', left: '12.3%', width: '11.3%', height: '11.3%', target: 'lotus' },
         ]
     },
     'chestnut': {
@@ -97,6 +98,10 @@ window.gameData = {
         hotspots: []
     },
     'greenmonster': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'lotus': {
         type: 'cinematic',
         hotspots: []
     },
