@@ -48,7 +48,7 @@ window.gameData = {
     'treehouse': {
         type: 'cinematic',
         hotspots: [
-                   { top: '50.9%', left: '59.8%', width: '6.2%', height: '6.2%', target: 'train' },
+                   { top: '51%', left: '59.8%', width: '6.2%', height: '6.2%', target: 'train' },
                    ]
     },
     'twohouses': {
