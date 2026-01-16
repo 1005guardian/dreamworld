@@ -15,7 +15,7 @@ window.gameData = {
             { top: '14.8%', left: '72%', width: '6.3%', height: '6.3%', target: 'treehouse' },
             { top: '32.7%', left: '63.0%', width: '5.6%', height: '5.6%', target: 'twohouses' },
             { top: '6.5%', left: '63.2%', width: '7.2%', height: '7.2%', target: 'cave' },
-            { top: '60.7%', left: '44.0%', width: '6.9%', height: '6.9%', target: 'greenmonster' },
+            { top: '60.7%', left: '44.0%', width: '6.9%', height: '6.9%', target: 'greenmon' },
             { top: '33.3%', left: '92.3%', width: '5.1%', height: '5.1%', target: 'branch' },
             { top: '40.9%', left: '88.0%', width: '5.8%', height: '5.8%', target: 'gummy' },
         ]
@@ -101,7 +101,7 @@ window.gameData = {
         type: 'cinematic',
         hotspots: []
     },
-    'greenmonster': {
+    'greenmon': {
         type: 'cinematic',
         hotspots: []
     },
