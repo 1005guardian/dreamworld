@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreamworld Navigation Flow</title>
+    
+    <script src="./scenes.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            padding: 40px;
+            margin: 0;
+            overflow: auto;
+        }
+
+        h1 { margin-left: 20px; color: #aaa; font-size: 24px; }
+
+        .tree-root {
+            display: flex;
+            align-items: center;
+            padding-bottom: 50px;
+        }
+
+        /* --- WRAPPERS --- */
+        .node-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .children-wrapper {
+            display: flex;
+            flex-direction: column;
+            /* FIXED: The gap of 60px is now perfectly bridged by lines */
+            margin-left: 60px;
+            position: relative;
+        }
+
+        .child-node {
+            position: relative;
+            /* Padding removed so we can control lines via negative margins/positioning */
+            padding-left: 0;
+            padding-top: 15px;
+            padding-bottom: 15px;
+        }
+
+        /* --- CONNECTORS (FIXED MATH) --- */
+        
+        /* 1. Horizontal Arm (Child -> Left) */
+        /* Extends 30px to the left of the child card */
+        .child-node::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            width: 30px;
+            height: 1px;
+            background: #666;
+        }
+
+        /* 2. Vertical Spine (Child -> Up/Down) */
+        /* Sits exactly at -30px (Middle of the 60px gap) */
+        .child-node::after {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #666;
+            height: 100%;
+        }
+
+        /* 3. Logic to stop lines at the center */
+        
+        /* First Child: Line starts at 50% and goes down */
+        .child-node:first-child::after {
+            top: 50%;
+            height: 50%;
+        }
+
+        /* Last Child: Line starts at top and stops at 50% */
+        .child-node:last-child::after {
+            height: 50%;
+            bottom: auto;
+            top: 0;
+        }
+
+        /* Only Child: No vertical line needed */
+        .child-node:only-child::after {
+            display: none;
+        }
+        
+        /* Parent Connector (Parent -> Right) */
+        /* Extends 30px to the right of the parent card */
+        .has-children > .node-card {
+            position: relative;
+        }
+        .has-children > .node-card::after {
+            content: '';
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            width: 30px;
+            height: 1px;
+            background: #666;
+        }
+
+        /* --- CARD STYLING --- */
+        .node-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid #444;
+            padding: 10px;
+            text-decoration: none;
+            color: #fff;
+            background: #2a2a2a;
+            border-radius: 8px;
+            transition: all 0.2s;
+            position: relative;
+            z-index: 10;
+            min-width: 180px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .node-card:hover {
+            background: #333;
+            border-color: #ff0055;
+            transform: translateX(5px);
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+            z-index: 20;
+        }
+
+        .node-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #000;
+            border: 1px solid #555;
+            flex-shrink: 0;
+        }
+
+        .node-name {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            color: #eee;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Dreamworld Flow</h1>
+    
+    <div id="treeRoot" class="tree-root" style="margin-left: 20px;">
+        </div>
+
+    <script>
+        const scenes = window.gameData;
+        if (!scenes) { document.body.innerHTML = "<h1>Error: scenes.js not found</h1>"; }
+
+        const rootId = 'main';
+
+        function buildTreeHTML(sceneId) {
+            const data = scenes[sceneId];
+            if (!data) return '';
+
+            // -- Gather Children --
+            let childrenIds = [];
+            
+            if (data.clickTarget) childrenIds.push(data.clickTarget);
+            if (data.hotspots) {
+                data.hotspots.forEach(h => {
+                    if (h.target) childrenIds.push(h.target);
+                });
+            }
+
+            const hasChildren = childrenIds.length > 0;
+            const thumbPath = `./${sceneId}_s.png`;
+            const linkUrl = `./index.html?scene=${sceneId}`;
+
+            // -- Build HTML --
+            let html = `<div class="node-wrapper ${hasChildren ? 'has-children' : ''}">`;
+
+            html += `
+                <a href="${linkUrl}" class="node-card">
+                    <img src="${thumbPath}" class="node-thumb" alt="" onerror="this.style.opacity=0.3">
+                    <span class="node-name">${sceneId}</span>
+                </a>
+            `;
+
+            if (hasChildren) {
+                html += `<div class="children-wrapper">`;
+                childrenIds.forEach((childId) => {
+                    html += `<div class="child-node">`;
+                    html += buildTreeHTML(childId);
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        const treeContainer = document.getElementById('treeRoot');
+        treeContainer.innerHTML = buildTreeHTML(rootId);
+
+    </script>
+</body>
+</html>
