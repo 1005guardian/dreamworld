@@ -62,7 +62,8 @@ window.gameData = {
             { top: '72.6%', left: '51.1%', width: '11.6%', height: '11.6%', target: 'ancient' },
             { top: '91.0%', left: '76.1%', width: '7.5%', height: '7.5%', target: 'pavilion' },
             { top: '9.4%', left: '32.0%', width: '8.4%', height: '8.4%', target: 'raft' },
-            { top: '54.6%', left: '31.1%', width: '6.6%', height: '6.6%', target: 'teahouse' }
+            { top: '54.6%', left: '31.1%', width: '6.6%', height: '6.6%', target: 'teahouse' },
+            { top: '62.3%', left: '34.4%', width: '7.8%', height: '7.8%', target: 'boat' },
         ]
     },
     'palace': {
@@ -155,6 +156,10 @@ window.gameData = {
         hotspots: []
     },
     'war': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'boat': {
         type: 'cinematic',
         hotspots: []
     },
