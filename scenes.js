@@ -47,6 +47,7 @@ window.gameData = {
             { top: '11.7%', left: '55.5%', width: '5.4%', height: '5.4%', target: 'palace' },
             { top: '81.6%', left: '34.7%', width: '6.0%', height: '6.0%', target: 'lair' },
             { top: '18.3%', left: '83.0%', width: '10.8%', height: '10.8%', target: 'spaceship' },
+            { top: '46.0%', left: '70.5%', width: '4.9%', height: '4.9%', target: 'greentube' },
         ]
     },
     'treehouse': {
@@ -144,6 +145,10 @@ window.gameData = {
         hotspots: []
     },
     'moai': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'greentube': {
         type: 'cinematic',
         hotspots: []
     },
