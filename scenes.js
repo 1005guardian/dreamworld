@@ -90,7 +90,9 @@ window.gameData = {
     },
     'raft': {
         type: 'cinematic',
-        hotspots: []
+        hotspots: [
+           { top: '65.3%', left: '30.9%', width: '5.5%', height: '5.5%', target: 'war' },
+        ]
     },
     'teahouse': {
         type: 'cinematic',
@@ -149,6 +151,10 @@ window.gameData = {
         hotspots: []
     },
     'greentube': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'war': {
         type: 'cinematic',
         hotspots: []
     },
