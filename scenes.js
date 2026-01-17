@@ -80,6 +80,7 @@ window.gameData = {
         type: 'cinematic',
         hotspots: [
            { top: '33.3%', left: '49.2%', width: '5.4%', height: '5.4%', target: 'desert' },
+           { top: '77.5%', left: '25.9%', width: '4.6%', height: '4.6%', target: 'moai' },
         ]
     },
     'pavilion': {
@@ -139,6 +140,10 @@ window.gameData = {
         hotspots: []
     },
     'desert': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'moai': {
         type: 'cinematic',
         hotspots: []
     },
