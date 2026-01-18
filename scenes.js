@@ -12,7 +12,7 @@ window.gameData = {
         hotspots: [
             { top: '10.2%', left: '12.8%', width: '8%', height: '8%', target: 'redspots' },
             { top: '64.2%', left: '60%', width: '8.3%', height: '8.3%', target: 'alchemy' },
-            { top: '14.8%', left: '72%', width: '6.3%', height: '6.3%', target: 'treehouse' },
+            { top: '14.9%', left: '72%', width: '6.5%', height: '6.5%', target: 'treehouse' },
             { top: '32.4%', left: '62.7%', width: '6.2%', height: '6.2%', target: 'twohouses' },
             { top: '6.5%', left: '63.2%', width: '7.2%', height: '7.2%', target: 'cave' },
             { top: '60.7%', left: '44.0%', width: '6.9%', height: '6.9%', target: 'greenmon' },
