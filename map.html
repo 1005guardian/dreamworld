@@ -4,151 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dreamworld Navigation Flow</title>
-    
     <script src="./scenes.js"></script>
 
     <style>
-        body {
-            font-family: sans-serif;
-            background-color: #1a1a1a;
-            color: #fff;
-            padding: 40px;
-            margin: 0;
-            overflow: auto;
-        }
-
+        /* ... (Keep previous styles) ... */
+        body { font-family: sans-serif; background-color: #1a1a1a; color: #fff; padding: 40px; margin: 0; overflow: auto; }
         h1 { margin-left: 20px; color: #aaa; font-size: 24px; }
         .node-count { font-size: 0.6em; color: #666; margin-left: 10px; vertical-align: middle; }
+        .tree-root { display: flex; align-items: center; padding-bottom: 50px; }
+        .node-wrapper { display: flex; align-items: center; }
+        .children-wrapper { display: flex; flex-direction: column; margin-left: 60px; position: relative; }
+        .child-node { position: relative; padding-left: 0; padding-top: 15px; padding-bottom: 15px; }
 
-        .tree-root {
-            display: flex;
-            align-items: center;
-            padding-bottom: 50px;
-        }
+        /* Connectors */
+        .child-node::before { content: ''; position: absolute; left: -30px; top: 50%; width: 30px; height: 1px; background: #666; }
+        .child-node::after { content: ''; position: absolute; left: -30px; top: 0; bottom: 0; width: 1px; background: #666; height: 100%; }
+        .child-node:first-child::after { top: 50%; height: 50%; }
+        .child-node:last-child::after { height: 50%; bottom: auto; top: 0; }
+        .child-node:only-child::after { display: none; }
+        .has-children > .node-card { position: relative; }
+        .has-children > .node-card::after { content: ''; position: absolute; right: -30px; top: 50%; width: 30px; height: 1px; background: #666; }
 
-        /* --- WRAPPERS --- */
-        .node-wrapper {
-            display: flex;
-            align-items: center;
-        }
-
-        .children-wrapper {
-            display: flex;
-            flex-direction: column;
-            margin-left: 60px;
-            position: relative;
-        }
-
-        .child-node {
-            position: relative;
-            padding-left: 0;
-            padding-top: 15px;
-            padding-bottom: 15px;
-        }
-
-        /* --- CONNECTORS --- */
-        .child-node::before {
-            content: '';
-            position: absolute;
-            left: -30px;
-            top: 50%;
-            width: 30px;
-            height: 1px;
-            background: #666;
-        }
-
-        .child-node::after {
-            content: '';
-            position: absolute;
-            left: -30px;
-            top: 0;
-            bottom: 0;
-            width: 1px;
-            background: #666;
-            height: 100%;
-        }
-
-        .child-node:first-child::after {
-            top: 50%;
-            height: 50%;
-        }
-
-        .child-node:last-child::after {
-            height: 50%;
-            bottom: auto;
-            top: 0;
-        }
-
-        .child-node:only-child::after {
-            display: none;
-        }
-        
-        .has-children > .node-card {
-            position: relative;
-        }
-        .has-children > .node-card::after {
-            content: '';
-            position: absolute;
-            right: -30px;
-            top: 50%;
-            width: 30px;
-            height: 1px;
-            background: #666;
-        }
-
-        /* --- CARD STYLING (UPDATED) --- */
+        /* --- STANDARD CARD --- */
         .node-card {
-            display: flex;
-            /* UPDATED: Stack vertically */
-            flex-direction: column;
-            align-items: center; /* Center horizontally */
-            justify-content: center;
-            gap: 10px;
-            
-            border: 1px solid #444;
-            padding: 12px;
-            text-decoration: none;
-            color: #fff;
-            background: #2a2a2a;
-            border-radius: 8px;
-            transition: all 0.2s;
-            position: relative;
-            z-index: 10;
-            
-            /* UPDATED: Sizing for vertical layout */
-            min-width: 120px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+            border: 1px solid #444; padding: 12px; text-decoration: none; color: #fff; background: #2a2a2a;
+            border-radius: 8px; transition: all 0.2s; position: relative; z-index: 10;
+            min-width: 120px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .node-card:hover { background: #333; border-color: #ff0055; transform: scale(1.05); box-shadow: 0 0 15px rgba(255, 0, 85, 0.4); z-index: 20; }
+        .node-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; background: #000; border: 1px solid #555; flex-shrink: 0; }
+        .node-name { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color: #eee; max-width: 120px; word-wrap: break-word; }
+
+        /* --- NEW: LOOP NODE STYLING --- */
+        .node-card.loop-node {
+            border: 1px dashed #ff9900; /* Orange Dashed Border */
+            background: #2a2010;
+            opacity: 0.9;
+        }
+        .node-card.loop-node .node-name {
+            color: #ff9900;
+        }
+        .node-card.loop-node .node-thumb {
+            opacity: 0.5; /* Dim image for loop */
+            border-color: #ff9900;
+        }
+        .loop-icon {
+            position: absolute;
+            top: -10px; right: -10px;
+            background: #ff9900;
+            color: #000;
+            border-radius: 50%;
+            width: 24px; height: 24px;
             text-align: center;
-            
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-
-        .node-card:hover {
-            background: #333;
-            border-color: #ff0055;
-            transform: scale(1.05); /* Slight zoom looks better for vertical cards */
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
-            z-index: 20;
-        }
-
-        .node-thumb {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 6px;
-            background: #000;
-            border: 1px solid #555;
-            flex-shrink: 0;
-        }
-
-        .node-name {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            line-height: 24px;
             font-weight: bold;
-            color: #eee;
-            /* Ensure text doesn't overflow weirdly */
-            max-width: 120px;
-            word-wrap: break-word;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
     </style>
@@ -157,25 +69,44 @@
 
     <h1 id="pageTitle">Dreamworld Flow <span id="countDisplay" class="node-count"></span></h1>
     
-    <div id="treeRoot" class="tree-root" style="margin-left: 20px;">
-        </div>
+    <div id="treeRoot" class="tree-root" style="margin-left: 20px;"></div>
 
     <script>
         const scenes = window.gameData;
         if (!scenes) { document.body.innerHTML = "<h1>Error: scenes.js not found</h1>"; }
 
         const rootId = 'main';
-
         const totalNodes = Object.keys(scenes).length;
         document.getElementById('countDisplay').innerText = `(${totalNodes} Scenes)`;
 
-        function buildTreeHTML(sceneId) {
+        // UPDATED: Function accepts 'ancestors' array
+        function buildTreeHTML(sceneId, ancestors = []) {
             const data = scenes[sceneId];
             if (!data) return '';
 
-            // -- Gather Children --
+            // --- 1. CHECK FOR INFINITE LOOP ---
+            // If we have visited this ID in this specific branch before, it's a loop.
+            if (ancestors.includes(sceneId)) {
+                const thumbPath = `./${sceneId}_s.png`;
+                const linkUrl = `./index.html?scene=${sceneId}`;
+                
+                // Return a special "Loop Node" and STOP recursion
+                return `
+                    <div class="node-wrapper">
+                        <a href="${linkUrl}" class="node-card loop-node">
+                            <div class="loop-icon">⟳</div>
+                            <img src="${thumbPath}" class="node-thumb" alt="" onerror="this.style.opacity=0.3">
+                            <span class="node-name">${sceneId}</span>
+                        </a>
+                    </div>
+                `;
+            }
+
+            // If not a loop, add current ID to ancestors for the next level
+            const newAncestors = [...ancestors, sceneId];
+
+            // --- 2. Gather Children ---
             let childrenIds = [];
-            
             if (data.clickTarget) childrenIds.push(data.clickTarget);
             if (data.hotspots) {
                 data.hotspots.forEach(h => {
@@ -187,7 +118,7 @@
             const thumbPath = `./${sceneId}_s.png`;
             const linkUrl = `./index.html?scene=${sceneId}`;
 
-            // -- Build HTML --
+            // --- 3. Build HTML ---
             let html = `<div class="node-wrapper ${hasChildren ? 'has-children' : ''}">`;
 
             html += `
@@ -201,7 +132,8 @@
                 html += `<div class="children-wrapper">`;
                 childrenIds.forEach((childId) => {
                     html += `<div class="child-node">`;
-                    html += buildTreeHTML(childId);
+                    // Pass the new ancestors list down
+                    html += buildTreeHTML(childId, newAncestors);
                     html += `</div>`;
                 });
                 html += `</div>`;
@@ -212,7 +144,8 @@
         }
 
         const treeContainer = document.getElementById('treeRoot');
-        treeContainer.innerHTML = buildTreeHTML(rootId);
+        // Start with empty ancestors
+        treeContainer.innerHTML = buildTreeHTML(rootId, []);
 
     </script>
 </body>

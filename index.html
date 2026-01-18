@@ -1,563 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Zoom - Deep Linking Fixed</title>
+<script>
+    if (!window.gameData) { alert("Could not load scenes.js"); }
+    const scenes = window.gameData || {};
+
+    const stage = document.getElementById('stage');
+    // ... (Keep your DOM element references) ...
+    const backBtn = document.getElementById('backBtn'); // Ensure this is defined
+    const resetBtn = document.getElementById('resetBtn'); // Ensure this is defined
+    const builderToggle = document.getElementById('builderToggle'); // Ensure this is defined
     
-    <script src="./scenes.js"></script>
+    let currentSceneId = 'main';
+    let historyStack = [];
+    let isAnimating = false;
+    let isDrawing = false;
+    let parentMap = {};
 
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #1a1a1a;
-            font-family: sans-serif;
-            overflow-y: auto;
-            padding: 40px 0;
-        }
+    function init() {
+        if (!scenes['main']) return;
 
-        #stage {
-            position: relative;
-            background-color: #000;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-                        height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            /* Initial fallback size */
-            width: 150px;
-            height: 150px;
-            cursor: pointer;
-            user-select: none;
-            flex-shrink: 0;
-        }
+        buildParentMap();
 
-        #selectionBox {
-            position: absolute;
-            border: 1px solid #ff0055;
-            background-color: transparent;
-            z-index: 999;
-            pointer-events: none;
-            display: none;
-            box-sizing: border-box;
-        }
+        const urlParams = new URLSearchParams(window.location.search);
+        const sceneParam = urlParams.get('scene');
 
-        .layer-image {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover;
-            border-radius: 12px;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-        .layer-image.active { opacity: 1; z-index: 10; }
-        .layer-image.background { opacity: 1; z-index: 5; }
-        .layer-image.hidden { opacity: 0; z-index: 1; }
-
-        .hotspot {
-            position: absolute; z-index: 100;
-            border: 1px dashed rgba(255, 255, 255, 0);
-            background-color: transparent;
-            cursor: crosshair;
-            opacity: 0;
-            transform: scale(0.8);
-            transition: opacity 0.4s ease, transform 0.4s ease;
-            animation: pulse-sequence 2.5s infinite;
-        }
-        .hotspot.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
-        
-        @keyframes pulse-sequence {
-            0% { border-color: rgba(255, 255, 255, 0.8); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
-            50% { border-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
-            100% { border-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-        }
-
-        .animating-entry {
-            z-index: 20; opacity: 1; border-radius: 0;
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
-            animation: cinematicReveal 1.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-        }
-        @keyframes cinematicReveal {
-            0% { top: var(--start-top); left: var(--start-left); width: var(--start-width); height: var(--start-height); transform: translate(0, 0); }
-            100% { top: 0; left: 0; width: 100%; height: 100%; transform: translate(0, 0); }
-        }
-        .animating-exit {
-            z-index: 20; opacity: 1; border-radius: 0;
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
-            animation: cinematicExit 1.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-        }
-        @keyframes cinematicExit {
-            0% { top: 0; left: 0; width: 100%; height: 100%; transform: translate(0, 0); }
-            100% { top: var(--start-top); left: var(--start-left); width: var(--start-width); height: var(--start-height); transform: translate(0, 0); }
-        }
-
-        .ui-panel {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-            color: white;
-            z-index: 1000;
-            width: 100%;
-            flex-shrink: 0;
-        }
-
-        .controls-row { display: flex; gap: 10px; }
-        
-        .btn {
-            padding: 10px 20px; background: rgba(255,255,255,0.1); color: #fff;
-            border: 1px solid #555; border-radius: 4px; cursor: pointer; opacity: 0.5;
-            transition: opacity 0.5s, background 0.2s; pointer-events: none;
-        }
-        .btn.active { opacity: 1; pointer-events: auto; }
-        .btn:hover { background: rgba(255,255,255,0.2); }
-
-        .builder-container {
-            display: flex;
-            flex-direction: row;
-            gap: 20px;
-            width: 90%;
-            max-width: 1000px;
-            align-items: flex-start;
-            background: #222;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            flex-wrap: wrap;
-        }
-
-        .output-text-area { flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 5px; }
-        #builderOutput { width: 100%; padding: 12px; background: #111; border: 1px solid #444; color: #0f0; font-family: monospace; font-size: 14px; border-radius: 4px; box-sizing: border-box; }
-        .output-image-area { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 150px; }
-        #previewImage { max-width: 100%; min-height: 50px; border: 2px solid #ff4444; background: #000; display: block; }
-        .error-msg { color: #ff4444; font-size: 0.8rem; text-align: center; display: none; }
-    </style>
-</head>
-<body>
-
-    <div id="stage">
-        <div id="selectionBox"></div>
-    </div>
-    
-    <div class="ui-panel">
-        <div class="controls-row">
-            <button class="btn" id="backBtn">Back</button>
-            <button class="btn" id="resetBtn">Reset</button>
-        </div>
-        
-        <div style="border-top: 1px solid #444; width: 80%; margin: 15px 0;"></div>
-
-        <label>
-            <input type="checkbox" id="builderToggle">
-            <strong>Enable Builder Mode</strong> (Draw Square Hotspot)
-        </label>
-
-        <div class="builder-container">
-            <div class="output-text-area">
-                <span>JSON Output:</span>
-                <input type="text" id="builderOutput" placeholder="Draw a box to generate JSON..." readonly>
-            </div>
-            
-            <div class="output-image-area">
-                <span>Cropped Image (10% Padding):</span>
-                <img id="previewImage" src="" alt="Preview">
-                <span class="hint" style="color:#888; font-size:0.8rem;">(Right Click to Save)</span>
-                <div id="errorMsg" class="error-msg"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        if (!window.gameData) { alert("Could not load scenes.js"); }
-        const scenes = window.gameData || {};
-
-        const stage = document.getElementById('stage');
-        const backBtn = document.getElementById('backBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const selectionBox = document.getElementById('selectionBox');
-        const builderToggle = document.getElementById('builderToggle');
-        const builderOutput = document.getElementById('builderOutput');
-        const previewImage = document.getElementById('previewImage');
-        const errorMsg = document.getElementById('errorMsg');
-        
-        let currentSceneId = 'main';
-        let historyStack = [];
-        let isAnimating = false;
-        let isDrawing = false;
-        let startX = 0; let startY = 0;
-
-        let parentMap = {};
-
-        function init() {
-            if (!scenes['main']) return;
-
-            buildParentMap();
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const sceneParam = urlParams.get('scene');
-
-            if (sceneParam && scenes[sceneParam]) {
-                restoreState(sceneParam);
-            } else {
-                renderScene('main');
-            }
-
-            stage.addEventListener('click', (e) => {
-                if (builderToggle.checked) return;
-                const currentScene = scenes[currentSceneId];
-                if (currentScene.clickTarget && !isAnimating) {
-                    goForward(currentScene.clickTarget, 'expand');
-                }
-            });
-
-            stage.addEventListener('mousedown', startDraw);
-            window.addEventListener('mousemove', moveDraw);
-            window.addEventListener('mouseup', endDraw);
-
-            resetBtn.addEventListener('click', reset);
-            backBtn.addEventListener('click', goBack);
-
-            window.onpopstate = function(event) {
-                if(event.state && event.state.sceneId) {
-                    restoreState(event.state.sceneId);
-                } else {
-                    renderScene('main');
-                }
-            };
-        }
-
-        function getImagePath(sceneId) { return `./${sceneId}.png`; }
-
-        function buildParentMap() {
-            for (const [parentId, data] of Object.entries(scenes)) {
-                if (data.clickTarget) {
-                    parentMap[data.clickTarget] = {
-                        parentId: parentId, hotspotData: null, type: 'expand'
-                    };
-                }
-                if (data.hotspots) {
-                    data.hotspots.forEach(h => {
-                        parentMap[h.target] = {
-                            parentId: parentId, hotspotData: h, type: 'cinematic'
-                        };
-                    });
-                }
-            }
-        }
-
-        function restoreState(targetId) {
-            if (targetId === 'main') {
-                reset();
-                return;
-            }
-
-            const path = [];
-            let curr = targetId;
-            while (curr !== 'main') {
-                const parentInfo = parentMap[curr];
-                if (!parentInfo) break;
-                
-                path.unshift({
-                    sceneId: parentInfo.parentId,
-                    type: parentInfo.type,
-                    hotspotUsed: parentInfo.hotspotData
-                });
-                curr = parentInfo.parentId;
-            }
-
-            historyStack = path;
-            currentSceneId = targetId;
-            updateURL(targetId);
-            renderScene(targetId);
-        }
-
-        function updateURL(sceneId) {
-            const url = new URL(window.location);
-            if (sceneId === 'main') {
-                url.searchParams.delete('scene');
-            } else {
-                url.searchParams.set('scene', sceneId);
-            }
-            window.history.pushState({ sceneId: sceneId }, '', url);
-        }
-
-        // --- UPDATED RENDER SCENE (FIXED RECURSIVE SIZE LOOKUP) ---
-        function renderScene(id) {
-            stage.innerHTML = '';
-            stage.appendChild(selectionBox);
-            
-            const data = scenes[id];
-            
-            // 1. Calculate Width/Height (Recursive Lookup)
-            // If current scene doesn't have dimensions, walk up parentMap until we find them.
-            let width = data.width;
-            let height = data.height;
-            let curr = id;
-
-            // Loop until we find dimensions or run out of parents
-            while ((!width || !height) && parentMap[curr]) {
-                curr = parentMap[curr].parentId;
-                if (scenes[curr]) {
-                    if (!width) width = scenes[curr].width;
-                    if (!height) height = scenes[curr].height;
-                }
-            }
-
-            // Fallback if nothing found (though expanding logic implies root always has it)
-            stage.style.width = width || '100%';
-            stage.style.height = height || '100%';
-            
-            // 2. Render Image
-            const imgPath = getImagePath(id);
-            const img = createImg(imgPath, ['layer-image', 'active']);
-            img.id = 'current-img';
-            
-            // 3. Render Hotspots
-            if (data.hotspots) {
-                renderHotspots(data.hotspots);
-                preloadNextImages(data.hotspots);
-            }
-            
-            currentSceneId = id; updateUI();
-        }
-
-        // --- STANDARD FUNCTIONS ---
-
-        function createImg(src, classes) {
-            const img = document.createElement('img');
-            img.src = src;
-            img.classList.add(...classes);
-            stage.appendChild(img);
-            return img;
-        }
-
-        function renderHotspots(list) {
-            if (!list) return;
-            list.forEach((h, index) => {
-                const spot = document.createElement('div');
-                spot.classList.add('hotspot');
-                spot.style.animationDelay = (index * 0.8) + 's';
-                spot.style.top = h.top; spot.style.left = h.left;
-                spot.style.width = h.width; spot.style.height = h.height;
-                spot.addEventListener('click', (e) => {
-                    if(builderToggle.checked) return;
-                    e.stopPropagation();
-                    goForward(h.target, 'cinematic', h);
-                });
-                stage.appendChild(spot); setTimeout(() => spot.classList.add('visible'), 50);
-            });
-        }
-
-        function clearHotspots() { document.querySelectorAll('.hotspot').forEach(el => el.remove()); }
-        
-        function setAnimationVars(h) {
-            if (!h) return;
-            stage.style.setProperty('--start-top', h.top); stage.style.setProperty('--start-left', h.left);
-            stage.style.setProperty('--start-width', h.width); stage.style.setProperty('--start-height', h.height);
-        }
-
-        function preloadNextImages(hotspots) {
-            hotspots.forEach(h => {
-                const targetId = h.target;
-                if (targetId && scenes[targetId]) {
-                    const imgUrl = getImagePath(targetId);
-                    const preloader = new Image();
-                    preloader.src = imgUrl;
-                }
-            });
-        }
-
-        function updateUI() {
-            if (currentSceneId !== 'main') {
-                backBtn.classList.add('active'); resetBtn.classList.add('active'); stage.style.cursor = 'default';
-            } else {
-                backBtn.classList.remove('active'); resetBtn.classList.remove('active'); stage.style.cursor = 'pointer';
-            }
-        }
-
-        function goForward(targetId, type, hotspotData = null) {
-            if (isAnimating) return;
-            if (!scenes[targetId]) return;
-
-            isAnimating = true;
-            historyStack.push({ sceneId: currentSceneId, type: type, hotspotUsed: hotspotData });
-            
-            const targetScene = scenes[targetId];
-            const currentImg = document.getElementById('current-img');
-            clearHotspots();
-
-            const nextPath = getImagePath(targetId);
-            updateURL(targetId);
-
-            if (type === 'expand') {
-                stage.style.width = targetScene.width; stage.style.height = targetScene.height;
-                const nextImg = createImg(nextPath, ['layer-image', 'hidden']);
-                setTimeout(() => {
-                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
-                    nextImg.classList.remove('hidden'); nextImg.classList.add('active');
-                    nextImg.id = 'current-img'; currentImg.id = '';
-                    setTimeout(() => { currentImg.remove(); renderHotspots(targetScene.hotspots); isAnimating = false; }, 600);
-                }, 100);
-            } else if (type === 'cinematic') {
-                const nextImg = createImg(nextPath, ['layer-image', 'animating-entry']);
-                setAnimationVars(hotspotData);
-                setTimeout(() => {
-                    nextImg.classList.remove('animating-entry'); nextImg.classList.add('active');
-                    nextImg.id = 'current-img'; currentImg.remove();
-                    renderHotspots(targetScene.hotspots);
-                    if(targetScene.hotspots) preloadNextImages(targetScene.hotspots);
-                    isAnimating = false;
-                }, 1200);
-            }
-            currentSceneId = targetId; updateUI(); selectionBox.style.display = 'none';
-        }
-
-        function goBack() {
-            if (historyStack.length === 0 || isAnimating) return;
-            isAnimating = true;
-            
-            const prevState = historyStack.pop();
-            const prevScene = scenes[prevState.sceneId];
-            const currentImg = document.getElementById('current-img');
-            clearHotspots();
-
-            const prevPath = getImagePath(prevState.sceneId);
-            updateURL(prevState.sceneId);
-
-            if (prevState.type === 'expand') {
-                stage.style.width = prevScene.width; stage.style.height = prevScene.height;
-                const prevImg = createImg(prevPath, ['layer-image', 'hidden']);
-                setTimeout(() => {
-                    currentImg.classList.remove('active'); currentImg.classList.add('hidden');
-                    prevImg.classList.remove('hidden'); prevImg.classList.add('active');
-                    prevImg.id = 'current-img'; currentImg.id = '';
-                    setTimeout(() => {
-                        currentImg.remove();
-                        if (prevState.sceneId !== 'main') {
-                            renderHotspots(prevScene.hotspots);
-                            if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
-                        }
-                        isAnimating = false;
-                    }, 600);
-                }, 100);
-            } else if (prevState.type === 'cinematic') {
-                const prevImg = createImg(prevPath, ['layer-image', 'background']);
-                setAnimationVars(prevState.hotspotUsed);
-                currentImg.classList.remove('active'); currentImg.classList.add('animating-exit');
-                setTimeout(() => {
-                    currentImg.remove(); prevImg.classList.remove('background'); prevImg.classList.add('active');
-                    prevImg.id = 'current-img';
-                    renderHotspots(prevScene.hotspots);
-                    if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
-                    isAnimating = false;
-                }, 1200);
-            }
-            currentSceneId = prevState.sceneId; updateUI(); selectionBox.style.display = 'none';
-        }
-
-        function reset() {
-            if (isAnimating) return;
-            historyStack = [];
-            updateURL('main');
+        if (sceneParam && scenes[sceneParam]) {
+            restoreState(sceneParam);
+        } else {
             renderScene('main');
         }
 
-        // --- DRAWING LOGIC (Unchanged) ---
-        function startDraw(e) {
-            if (!builderToggle.checked) return;
-            e.preventDefault();
-            isDrawing = true;
-            const rect = stage.getBoundingClientRect();
-            startX = e.clientX - rect.left;
-            startY = e.clientY - rect.top;
-            selectionBox.style.left = startX + 'px';
-            selectionBox.style.top = startY + 'px';
-            selectionBox.style.width = '0px';
-            selectionBox.style.height = '0px';
-            selectionBox.style.display = 'block';
+        // ... (Keep your event listeners) ...
+    }
+
+    // ... (Keep helpers: getImagePath, buildParentMap, createImg, renderHotspots, clearHotspots, setAnimationVars, preloadNextImages, updateUI, goForward, goBack, reset, drawing logic) ...
+
+    // --- CRITICAL FIX: SAFETY CHECK IN RENDER SCENE ---
+    function renderScene(id) {
+        stage.innerHTML = '';
+        stage.appendChild(document.getElementById('selectionBox')); // Keep selection box
+        
+        const data = scenes[id];
+        
+        // 1. Recursive Size Lookup (WITH INFINITE LOOP PROTECTION)
+        let width = data.width;
+        let height = data.height;
+        let curr = id;
+        
+        // Safety Set to track visited nodes during this lookup
+        let checked = new Set();
+        
+        while ((!width || !height) && parentMap[curr]) {
+            // STOP if we have seen this node before in this specific lookup chain
+            if (checked.has(curr)) break;
+            checked.add(curr);
+
+            curr = parentMap[curr].parentId;
+            if (scenes[curr]) {
+                if (!width) width = scenes[curr].width;
+                if (!height) height = scenes[curr].height;
+            }
         }
 
-        function moveDraw(e) {
-            if (!isDrawing || !builderToggle.checked) return;
-            const rect = stage.getBoundingClientRect();
-            let currentX = e.clientX - rect.left;
-            let currentY = e.clientY - rect.top;
-            let diffX = currentX - startX;
-            let diffY = currentY - startY;
-            let size = Math.max(Math.abs(diffX), Math.abs(diffY));
-            let newLeft = (diffX < 0) ? (startX - size) : startX;
-            let newTop = (diffY < 0) ? (startY - size) : startY;
-            selectionBox.style.width = size + 'px';
-            selectionBox.style.height = size + 'px';
-            selectionBox.style.left = newLeft + 'px';
-            selectionBox.style.top = newTop + 'px';
-        }
-
-        function endDraw(e) {
-            if (!isDrawing) return;
-            isDrawing = false;
-            if (!builderToggle.checked) {
-                selectionBox.style.display = 'none';
-                return;
-            }
-            const rect = stage.getBoundingClientRect();
-            const pixelLeft = parseFloat(selectionBox.style.left);
-            const pixelTop = parseFloat(selectionBox.style.top);
-            const pixelWidth = parseFloat(selectionBox.style.width);
-            const pixelHeight = parseFloat(selectionBox.style.height);
-
-            if (pixelWidth < 5 || pixelHeight < 5) {
-                selectionBox.style.display = 'none';
-                return;
-            }
-
-            const perLeft = ((pixelLeft / rect.width) * 100).toFixed(1) + '%';
-            const perTop = ((pixelTop / rect.height) * 100).toFixed(1) + '%';
-            const perWidth = ((pixelWidth / rect.width) * 100).toFixed(1) + '%';
-            const perHeight = ((pixelHeight / rect.height) * 100).toFixed(1) + '%';
-            
-            const outputString = `{ top: '${perTop}', left: '${perLeft}', width: '${perWidth}', height: '${perHeight}', target: '' }`;
-            builderOutput.value = outputString;
-            builderOutput.select();
-
-            generatePreview(pixelLeft, pixelTop, pixelWidth, pixelHeight, rect.width, rect.height);
-        }
-
-        function generatePreview(x, y, w, h, stageW, stageH) {
-            const currentImg = document.getElementById('current-img');
-            errorMsg.style.display = 'none';
-            previewImage.src = '';
-            try {
-                const ratioX = currentImg.naturalWidth / stageW;
-                const ratioY = currentImg.naturalHeight / stageH;
-                const sourceX = Math.round(x * ratioX);
-                const sourceY = Math.round(y * ratioY);
-                const sourceW = Math.round(w * ratioX);
-                const sourceH = Math.round(h * ratioY);
-                const padding = Math.round(sourceW * 0.10);
-
-                const canvas = document.createElement('canvas');
-                canvas.width = sourceW + (padding * 2);
-                canvas.height = sourceH + (padding * 2);
-                
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(currentImg, sourceX, sourceY, sourceW, sourceH, padding, padding, sourceW, sourceH);
-                previewImage.src = canvas.toDataURL('image/png');
-            } catch (err) {
-                console.warn("Image Export Failed");
-                errorMsg.innerText = "Preview blocked (Tainted Canvas). Use Local Server.";
-                errorMsg.style.display = 'block';
-            }
+        stage.style.width = width || '100%';
+        stage.style.height = height || '100%';
+        
+        // 2. Render Image
+        const imgPath = getImagePath(id);
+        const img = createImg(imgPath, ['layer-image', 'active']);
+        img.id = 'current-img';
+        
+        // 3. Render Hotspots
+        if (data.hotspots) {
+            renderHotspots(data.hotspots);
+            preloadNextImages(data.hotspots);
         }
         
-        init();
-    </script>
-</body>
-</html>
+        currentSceneId = id;
+        if(typeof updateUI === 'function') updateUI();
+    }
+
+    // --- CRITICAL FIX: SAFETY CHECK IN RESTORE STATE ---
+    function restoreState(targetId) {
+        if (targetId === 'main') {
+            reset();
+            return;
+        }
+
+        const path = [];
+        let curr = targetId;
+        
+        // Safety Set for Deep Link reconstruction
+        let checked = new Set();
+
+        while (curr !== 'main') {
+            // STOP if loop detected
+            if (checked.has(curr)) {
+                console.warn("Loop detected in navigation path. Stopping deep link trace.");
+                break;
+            }
+            checked.add(curr);
+
+            const parentInfo = parentMap[curr];
+            if (!parentInfo) break;
+            
+            path.unshift({
+                sceneId: parentInfo.parentId,
+                type: parentInfo.type,
+                hotspotUsed: parentInfo.hotspotData
+            });
+            curr = parentInfo.parentId;
+        }
+
+        historyStack = path;
+        currentSceneId = targetId;
+        // Assuming updateURL is defined in your full code
+        const url = new URL(window.location);
+        url.searchParams.set('scene', targetId);
+        window.history.replaceState({ sceneId: targetId }, '', url);
+
+        renderScene(targetId);
+    }
+    
+    // ... (Rest of your code) ...
+    init();
+</script>
