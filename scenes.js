@@ -64,6 +64,7 @@ window.gameData = {
             { top: '9.4%', left: '32.0%', width: '8.4%', height: '8.4%', target: 'raft' },
             { top: '54.6%', left: '31.1%', width: '6.6%', height: '6.6%', target: 'teahouse' },
             { top: '62.3%', left: '34.4%', width: '7.8%', height: '7.8%', target: 'boat' },
+            { top: '61.0%', left: '57.6%', width: '8.5%', height: '8.5%', target: 'creek' },
         ]
     },
     'palace': {
@@ -160,6 +161,10 @@ window.gameData = {
         hotspots: []
     },
     'boat': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'creek': {
         type: 'cinematic',
         hotspots: []
     },
