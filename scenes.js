@@ -148,7 +148,6 @@ window.gameData = {
         type: 'cinematic',
         hotspots: [
            { top: '15.3%', left: '10.2%', width: '5.2%', height: '5.2%', target: 'desert' },
-
         ]
     },
     'moai': {
