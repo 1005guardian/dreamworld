@@ -21,7 +21,6 @@
             padding: 40px 0;
         }
 
-        /* --- THE STAGE --- */
         #stage {
             position: relative;
             background-color: #000;
@@ -29,14 +28,13 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
                         height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 150px; /* Default/Fallback */
+            width: 150px;
             height: 150px;
             cursor: pointer;
             user-select: none;
             flex-shrink: 0;
         }
 
-        /* --- BUILDER SELECTION BOX --- */
         #selectionBox {
             position: absolute;
             border: 1px solid #ff0055;
@@ -47,7 +45,6 @@
             box-sizing: border-box;
         }
 
-        /* --- IMAGES --- */
         .layer-image {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -60,74 +57,44 @@
         .layer-image.background { opacity: 1; z-index: 5; }
         .layer-image.hidden { opacity: 0; z-index: 1; }
 
-        /* --- HOTSPOTS --- */
         .hotspot {
             position: absolute; z-index: 100;
-            /* Start invisible, animation handles fade-in/out */
             border: 1px dashed rgba(255, 255, 255, 0);
             background-color: transparent;
             cursor: crosshair;
             opacity: 0;
             transform: scale(0.8);
             transition: opacity 0.4s ease, transform 0.4s ease;
-            /* Faster cycle: 2.5s */
             animation: pulse-sequence 2.5s infinite;
         }
         
         .hotspot.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
         
         @keyframes pulse-sequence {
-            0% {
-                border-color: rgba(255, 255, 255, 0.8);
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
-            }
-            50% {
-                /* Fade out mid-way */
-                border-color: rgba(255, 255, 255, 0);
-                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-            }
-            100% {
-                border-color: rgba(255, 255, 255, 0);
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-            }
+            0% { border-color: rgba(255, 255, 255, 0.8); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
+            50% { border-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { border-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
         }
 
-        /* --- TRANSITIONS --- */
         .animating-entry {
             z-index: 20; opacity: 1; border-radius: 0;
             box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
             animation: cinematicReveal 1.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
         }
         @keyframes cinematicReveal {
-            0% {
-                top: var(--start-top); left: var(--start-left);
-                width: var(--start-width); height: var(--start-height);
-                transform: translate(0, 0);
-            }
-            100% {
-                top: 0; left: 0; width: 100%; height: 100%;
-                transform: translate(0, 0);
-            }
+            0% { top: var(--start-top); left: var(--start-left); width: var(--start-width); height: var(--start-height); transform: translate(0, 0); }
+            100% { top: 0; left: 0; width: 100%; height: 100%; transform: translate(0, 0); }
         }
-
         .animating-exit {
             z-index: 20; opacity: 1; border-radius: 0;
             box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
             animation: cinematicExit 1.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
         }
         @keyframes cinematicExit {
-            0% {
-                top: 0; left: 0; width: 100%; height: 100%;
-                transform: translate(0, 0);
-            }
-            100% {
-                top: var(--start-top); left: var(--start-left);
-                width: var(--start-width); height: var(--start-height);
-                transform: translate(0, 0);
-            }
+            0% { top: 0; left: 0; width: 100%; height: 100%; transform: translate(0, 0); }
+            100% { top: var(--start-top); left: var(--start-left); width: var(--start-width); height: var(--start-height); transform: translate(0, 0); }
         }
 
-        /* --- UI CONTROLS --- */
         .ui-panel {
             margin-top: 20px;
             display: flex;
@@ -150,7 +117,6 @@
         .btn.active { opacity: 1; pointer-events: auto; }
         .btn:hover { background: rgba(255,255,255,0.2); }
 
-        /* --- BUILDER UI --- */
         .builder-container {
             display: flex;
             flex-direction: row;
@@ -166,35 +132,10 @@
         }
 
         .output-text-area { flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 5px; }
-        
-        #builderOutput {
-            width: 100%;
-            padding: 12px;
-            background: #111;
-            border: 1px solid #444;
-            color: #0f0;
-            font-family: monospace;
-            font-size: 14px;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
+        #builderOutput { width: 100%; padding: 12px; background: #111; border: 1px solid #444; color: #0f0; font-family: monospace; font-size: 14px; border-radius: 4px; box-sizing: border-box; }
         .output-image-area { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 150px; }
-        
-        #previewImage {
-            max-width: 100%;
-            min-height: 50px;
-            border: 2px solid #ff4444;
-            background: #000;
-            display: block;
-        }
-
-        .error-msg {
-            color: #ff4444;
-            font-size: 0.8rem;
-            text-align: center;
-            display: none;
-        }
+        #previewImage { max-width: 100%; min-height: 50px; border: 2px solid #ff4444; background: #000; display: block; }
+        .error-msg { color: #ff4444; font-size: 0.8rem; text-align: center; display: none; }
     </style>
 </head>
 <body>
@@ -232,13 +173,9 @@
     </div>
 
     <script>
-        if (!window.gameData) {
-            console.error("Game data not loaded.");
-            alert("Could not load scenes.js");
-        }
+        if (!window.gameData) { alert("Could not load scenes.js"); }
         const scenes = window.gameData || {};
 
-        // --- DOM ELEMENTS ---
         const stage = document.getElementById('stage');
         const backBtn = document.getElementById('backBtn');
         const resetBtn = document.getElementById('resetBtn');
@@ -248,26 +185,18 @@
         const previewImage = document.getElementById('previewImage');
         const errorMsg = document.getElementById('errorMsg');
         
-        // --- ENGINE STATE ---
         let currentSceneId = 'main';
         let historyStack = [];
         let isAnimating = false;
-        let parentMap = {};
-
-        // --- BUILDER STATE ---
         let isDrawing = false;
         let startX = 0; let startY = 0;
+        let parentMap = {};
 
-        // =========================================================
-        // INITIALIZATION
-        // =========================================================
         function init() {
             if (!scenes['main']) return;
 
-            // 1. Build map for back-tracing deep links
             buildParentMap();
 
-            // 2. Check URL for "?scene=xyz"
             const urlParams = new URLSearchParams(window.location.search);
             const sceneParam = urlParams.get('scene');
 
@@ -277,25 +206,21 @@
                 renderScene('main');
             }
 
-            // 3. Listeners
             stage.addEventListener('click', (e) => {
-                if (builderToggle.checked) return; // Don't nav if building
+                if (builderToggle.checked) return;
                 const currentScene = scenes[currentSceneId];
                 if (currentScene.clickTarget && !isAnimating) {
                     goForward(currentScene.clickTarget, 'expand');
                 }
             });
 
-            // Builder listeners
             stage.addEventListener('mousedown', startDraw);
             window.addEventListener('mousemove', moveDraw);
             window.addEventListener('mouseup', endDraw);
 
-            // Controls
             resetBtn.addEventListener('click', reset);
             backBtn.addEventListener('click', goBack);
 
-            // Browser History (Back button) support
             window.onpopstate = function(event) {
                 if(event.state && event.state.sceneId) {
                     restoreState(event.state.sceneId);
@@ -305,26 +230,45 @@
             };
         }
 
-        // Helper to get image filename from ID
         function getImagePath(sceneId) { return `./${sceneId}.png`; }
 
-        // =========================================================
-        // DEEP LINKING & NAVIGATION MAPPING
-        // =========================================================
+        // --- UPDATED: Breadth-First Search (Loop Safe) ---
         function buildParentMap() {
-            for (const [parentId, data] of Object.entries(scenes)) {
+            parentMap = {};
+            // Start queue with root
+            let queue = ['main'];
+            let visited = new Set(['main']); // Track visited to prevent loops
+
+            while (queue.length > 0) {
+                let currId = queue.shift();
+                const data = scenes[currId];
+                if (!data) continue;
+
+                // Collect all potential children from this node
+                let potentialChildren = [];
                 if (data.clickTarget) {
-                    parentMap[data.clickTarget] = {
-                        parentId: parentId, hotspotData: null, type: 'expand'
-                    };
+                    potentialChildren.push({ id: data.clickTarget, type: 'expand', hotspot: null });
                 }
                 if (data.hotspots) {
                     data.hotspots.forEach(h => {
-                        parentMap[h.target] = {
-                            parentId: parentId, hotspotData: h, type: 'cinematic'
-                        };
+                        if(h.target) potentialChildren.push({ id: h.target, type: 'cinematic', hotspot: h });
                     });
                 }
+
+                // Process children
+                potentialChildren.forEach(child => {
+                    // Only map this child if we haven't visited it yet.
+                    // This ensures we map the shortest path from Root, and ignore back-links (loops).
+                    if (!visited.has(child.id)) {
+                        visited.add(child.id);
+                        parentMap[child.id] = {
+                            parentId: currId,
+                            type: child.type,
+                            hotspotData: child.hotspot
+                        };
+                        queue.push(child.id);
+                    }
+                });
             }
         }
 
@@ -336,14 +280,15 @@
 
             const path = [];
             let curr = targetId;
-            let checked = new Set(); // Prevent infinite loops
+            let safetyCounter = 0; // Absolute fallback
 
+            // Trace path backwards
             while (curr !== 'main') {
-                if (checked.has(curr)) break; // Loop detected, stop tracing
-                checked.add(curr);
+                safetyCounter++;
+                if (safetyCounter > 100) { console.warn("Path trace failed"); break; }
 
                 const parentInfo = parentMap[curr];
-                if (!parentInfo) break;
+                if (!parentInfo) break; // Orphan or root reached
                 
                 path.unshift({
                     sceneId: parentInfo.parentId,
@@ -353,12 +298,9 @@
                 curr = parentInfo.parentId;
             }
 
-            // Restore engine state
             historyStack = path;
             currentSceneId = targetId;
             updateURL(targetId);
-            
-            // Render without animation
             renderScene(targetId);
         }
 
@@ -372,24 +314,20 @@
             window.history.pushState({ sceneId: sceneId }, '', url);
         }
 
-        // =========================================================
-        // RENDERING
-        // =========================================================
         function renderScene(id) {
             stage.innerHTML = '';
             stage.appendChild(selectionBox);
             
             const data = scenes[id];
             
-            // --- 1. Recursive Size Lookup (Safe) ---
+            // Recursive Size Lookup
             let width = data.width;
             let height = data.height;
             let curr = id;
-            let checked = new Set();
+            let checked = new Set(); // Safety for size lookup loop
 
-            // If current scene lacks dims, check parents until we find them
             while ((!width || !height) && parentMap[curr]) {
-                if (checked.has(curr)) break; // Loop guard
+                if (checked.has(curr)) break;
                 checked.add(curr);
 
                 curr = parentMap[curr].parentId;
@@ -402,12 +340,10 @@
             stage.style.width = width || '100%';
             stage.style.height = height || '100%';
             
-            // --- 2. Image ---
             const imgPath = getImagePath(id);
             const img = createImg(imgPath, ['layer-image', 'active']);
             img.id = 'current-img';
             
-            // --- 3. Hotspots ---
             if (data.hotspots) {
                 renderHotspots(data.hotspots);
                 preloadNextImages(data.hotspots);
@@ -429,12 +365,9 @@
             list.forEach((h, index) => {
                 const spot = document.createElement('div');
                 spot.classList.add('hotspot');
-                // Stagger animations (0.8s apart)
                 spot.style.animationDelay = (index * 0.8) + 's';
-                
                 spot.style.top = h.top; spot.style.left = h.left;
                 spot.style.width = h.width; spot.style.height = h.height;
-                
                 spot.addEventListener('click', (e) => {
                     if(builderToggle.checked) return;
                     e.stopPropagation();
@@ -448,10 +381,8 @@
         
         function setAnimationVars(h) {
             if (!h) return;
-            stage.style.setProperty('--start-top', h.top);
-            stage.style.setProperty('--start-left', h.left);
-            stage.style.setProperty('--start-width', h.width);
-            stage.style.setProperty('--start-height', h.height);
+            stage.style.setProperty('--start-top', h.top); stage.style.setProperty('--start-left', h.left);
+            stage.style.setProperty('--start-width', h.width); stage.style.setProperty('--start-height', h.height);
         }
 
         function preloadNextImages(hotspots) {
@@ -473,9 +404,6 @@
             }
         }
 
-        // =========================================================
-        // NAVIGATION ACTIONS
-        // =========================================================
         function goForward(targetId, type, hotspotData = null) {
             if (isAnimating) return;
             if (!scenes[targetId]) return;
@@ -490,7 +418,6 @@
             const nextPath = getImagePath(targetId);
             updateURL(targetId);
 
-            // Handle transition types
             if (type === 'expand') {
                 stage.style.width = targetScene.width || stage.style.width;
                 stage.style.height = targetScene.height || stage.style.height;
@@ -500,14 +427,9 @@
                     currentImg.classList.remove('active'); currentImg.classList.add('hidden');
                     nextImg.classList.remove('hidden'); nextImg.classList.add('active');
                     nextImg.id = 'current-img'; currentImg.id = '';
-                    setTimeout(() => {
-                        currentImg.remove();
-                        renderHotspots(targetScene.hotspots);
-                        isAnimating = false;
-                    }, 600);
+                    setTimeout(() => { currentImg.remove(); renderHotspots(targetScene.hotspots); isAnimating = false; }, 600);
                 }, 100);
-            }
-            else if (type === 'cinematic') {
+            } else if (type === 'cinematic') {
                 const nextImg = createImg(nextPath, ['layer-image', 'animating-entry']);
                 setAnimationVars(hotspotData);
                 setTimeout(() => {
@@ -544,26 +466,22 @@
                     prevImg.id = 'current-img'; currentImg.id = '';
                     setTimeout(() => {
                         currentImg.remove();
-                        // Only render hotspots if we are back at a scene that has them
-                        if (prevScene.hotspots) {
+                        if (prevState.sceneId !== 'main') {
                             renderHotspots(prevScene.hotspots);
-                            preloadNextImages(prevScene.hotspots);
+                            if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
                         }
                         isAnimating = false;
                     }, 600);
                 }, 100);
-            }
-            else if (prevState.type === 'cinematic') {
+            } else if (prevState.type === 'cinematic') {
                 const prevImg = createImg(prevPath, ['layer-image', 'background']);
                 setAnimationVars(prevState.hotspotUsed);
                 currentImg.classList.remove('active'); currentImg.classList.add('animating-exit');
                 setTimeout(() => {
                     currentImg.remove(); prevImg.classList.remove('background'); prevImg.classList.add('active');
                     prevImg.id = 'current-img';
-                    if(prevScene.hotspots) {
-                        renderHotspots(prevScene.hotspots);
-                        preloadNextImages(prevScene.hotspots);
-                    }
+                    renderHotspots(prevScene.hotspots);
+                    if(prevScene.hotspots) preloadNextImages(prevScene.hotspots);
                     isAnimating = false;
                 }, 1200);
             }
@@ -577,9 +495,7 @@
             renderScene('main');
         }
 
-        // =========================================================
-        // BUILDER MODE (Square Draw + 10% Padding)
-        // =========================================================
+        // --- DRAWING LOGIC ---
         function startDraw(e) {
             if (!builderToggle.checked) return;
             e.preventDefault();
@@ -599,17 +515,11 @@
             const rect = stage.getBoundingClientRect();
             let currentX = e.clientX - rect.left;
             let currentY = e.clientY - rect.top;
-            
             let diffX = currentX - startX;
             let diffY = currentY - startY;
-            
-            // Force Square
             let size = Math.max(Math.abs(diffX), Math.abs(diffY));
-            
-            // Calculate new top/left allowing dragging in any direction
             let newLeft = (diffX < 0) ? (startX - size) : startX;
             let newTop = (diffY < 0) ? (startY - size) : startY;
-
             selectionBox.style.width = size + 'px';
             selectionBox.style.height = size + 'px';
             selectionBox.style.left = newLeft + 'px';
@@ -619,12 +529,10 @@
         function endDraw(e) {
             if (!isDrawing) return;
             isDrawing = false;
-            
             if (!builderToggle.checked) {
                 selectionBox.style.display = 'none';
                 return;
             }
-
             const rect = stage.getBoundingClientRect();
             const pixelLeft = parseFloat(selectionBox.style.left);
             const pixelTop = parseFloat(selectionBox.style.top);
@@ -653,16 +561,12 @@
             errorMsg.style.display = 'none';
             previewImage.src = '';
             try {
-                // Map screen pixels to image native pixels
                 const ratioX = currentImg.naturalWidth / stageW;
                 const ratioY = currentImg.naturalHeight / stageH;
-                
                 const sourceX = Math.round(x * ratioX);
                 const sourceY = Math.round(y * ratioY);
                 const sourceW = Math.round(w * ratioX);
                 const sourceH = Math.round(h * ratioY);
-
-                // Calculate 10% Padding based on cropped width
                 const padding = Math.round(sourceW * 0.10);
 
                 const canvas = document.createElement('canvas');
@@ -670,12 +574,9 @@
                 canvas.height = sourceH + (padding * 2);
                 
                 const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#FFFFFF'; // White background
+                ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw image centered
                 ctx.drawImage(currentImg, sourceX, sourceY, sourceW, sourceH, padding, padding, sourceW, sourceH);
-                
                 previewImage.src = canvas.toDataURL('image/png');
             } catch (err) {
                 console.warn("Image Export Failed");
@@ -684,7 +585,6 @@
             }
         }
         
-        // Start engine
         init();
     </script>
 </body>

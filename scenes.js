@@ -147,7 +147,7 @@ window.gameData = {
     'desert': {
         type: 'cinematic',
         hotspots: [
-           { top: '15.3%', left: '10.2%', width: '5.2%', height: '5.2%', target: 'desert' },
+           { top: '21.3%', left: '17.1%', width: '5.2%', height: '5.2%', target: 'desert' },
         ]
     },
     'moai': {
