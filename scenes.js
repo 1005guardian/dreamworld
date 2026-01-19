@@ -10,7 +10,7 @@ window.gameData = {
         width: '1000px',
         height: '1000px',
         hotspots: [
-            { top: '10.2%', left: '12.8%', width: '8%', height: '8%', target: 'redspots' },
+            { top: '10.3%', left: '12.9%', width: '7.8%', height: '7.8%', target: 'redspots' },
             { top: '64.2%', left: '60%', width: '8.3%', height: '8.3%', target: 'alchemy' },
             { top: '14.9%', left: '72%', width: '6.5%', height: '6.5%', target: 'treehouse' },
             { top: '32.4%', left: '62.7%', width: '6.2%', height: '6.2%', target: 'twohouses' },
