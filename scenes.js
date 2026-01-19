@@ -18,6 +18,7 @@ window.gameData = {
             { top: '60.7%', left: '44.0%', width: '6.9%', height: '6.9%', target: 'greenmon' },
             { top: '33.3%', left: '92.3%', width: '5.1%', height: '5.1%', target: 'branch' },
             { top: '40.9%', left: '88.0%', width: '5.8%', height: '5.8%', target: 'gummy' },
+            { top: '17.5%', left: '28.0%', width: '4.8%', height: '4.8%', target: 'factory' },
         ]
     },
     'redspots': {
@@ -168,6 +169,10 @@ window.gameData = {
     },
     'creek': {
         type: 'cinematic',
+        hotspots: []
+    },
+    'factory': {
+        type: 'factory',
         hotspots: []
     },
 };
