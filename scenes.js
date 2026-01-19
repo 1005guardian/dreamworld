@@ -27,7 +27,7 @@ window.gameData = {
             { top: '30.0%', left: '43.8%', width: '10.2%', height: '10.2%', target: 'mushroomhouse' },
             { top: '32.7%', left: '53.2%', width: '6.7%', height: '6.7%', target: 'whitemush' },
             { top: '43.2%', left: '64.0%', width: '10.3%', height: '10.3%', target: 'plush' },
-            { top: '64.0%', left: '12.3%', width: '11.3%', height: '11.3%', target: 'lotus' },
+            { top: '64.1%', left: '12.4%', width: '11.1%', height: '11.1%', target: 'lotus' },
             { top: '43.1%', left: '86.6%', width: '10.7%', height: '10.7%', target: 'jellyfish' },
             { top: '10.0%', left: '74.7%', width: '5.6%', height: '5.6%', target: 'shipwreck' },
             { top: '45.3%', left: '36.9%', width: '8.0%', height: '8.0%', target: 'brownmush' },
