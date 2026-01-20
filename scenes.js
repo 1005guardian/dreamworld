@@ -20,6 +20,7 @@ window.gameData = {
             { top: '40.9%', left: '88.0%', width: '5.8%', height: '5.8%', target: 'gummy' },
             { top: '17.5%', left: '28.0%', width: '4.8%', height: '4.8%', target: 'factory' },
             { top: '49.3%', left: '85.9%', width: '5.1%', height: '5.1%', target: 'plushie' },
+            { top: '52.0%', left: '27.5%', width: '5.7%', height: '5.7%', target: 'croco' }
         ]
     },
     'redspots': {
@@ -182,6 +183,10 @@ window.gameData = {
         hotspots: []
     },
     'plushie': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'croco': {
         type: 'cinematic',
         hotspots: []
     },
