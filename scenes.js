@@ -69,6 +69,7 @@ window.gameData = {
             { top: '54.6%', left: '31.1%', width: '6.6%', height: '6.6%', target: 'teahouse' },
             { top: '62.3%', left: '34.4%', width: '7.8%', height: '7.8%', target: 'boat' },
             { top: '61.0%', left: '57.6%', width: '8.5%', height: '8.5%', target: 'creek' },
+            { top: '59.4%', left: '78.9%', width: '5.1%', height: '5.1%', target: 'fishtank' },
         ]
     },
     'palace': {
@@ -187,6 +188,10 @@ window.gameData = {
         hotspots: []
     },
     'croco': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'fishtank': {
         type: 'cinematic',
         hotspots: []
     },
