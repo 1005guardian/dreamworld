@@ -19,7 +19,7 @@ window.gameData = {
             { top: '33.3%', left: '92.3%', width: '5.1%', height: '5.1%', target: 'branch' },
             { top: '40.9%', left: '88.0%', width: '5.8%', height: '5.8%', target: 'gummy' },
             { top: '17.5%', left: '28.0%', width: '4.8%', height: '4.8%', target: 'factory' },
-            { top: '49.3%', left: '85.9%', width: '5.1%', height: '5.1%', target: 'plushie' }，
+            { top: '49.3%', left: '85.9%', width: '5.1%', height: '5.1%', target: 'plushie' },
         ]
     },
     'redspots': {
