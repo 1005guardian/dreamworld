@@ -190,13 +190,19 @@ window.gameData = {
     },
     'croco': {
         type: 'cinematic',
-        hotspots: []
+        hotspots: [
+           { top: '53.8%', left: '17.5%', width: '8.2%', height: '8.2%', target: 'future' }
+        ]
     },
     'fishtank': {
         type: 'cinematic',
         hotspots: []
     },
     'pandas': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'future': {
         type: 'cinematic',
         hotspots: []
     },
