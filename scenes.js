@@ -128,7 +128,9 @@ window.gameData = {
     },
     'branch': {
         type: 'cinematic',
-        hotspots: []
+        hotspots: [
+            { top: '36.5%', left: '7.3%', width: '6.8%', height: '6.8%', target: 'flower' }
+        ]
     },
     'train': {
         type: 'cinematic',
@@ -203,6 +205,10 @@ window.gameData = {
         hotspots: []
     },
     'future': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'flower': {
         type: 'cinematic',
         hotspots: []
     },
