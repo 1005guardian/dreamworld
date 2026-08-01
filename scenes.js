@@ -58,7 +58,7 @@ window.gameData = {
         type: 'cinematic',
         hotspots: [
            { top: '51%', left: '59.8%', width: '6.2%', height: '6.2%', target: 'train' },
-           { top: '49.9%', left: '33%', width: '7.6%', height: '7.6%', target: 'electronic' },
+           { top: '49.9%', left: '32.9%', width: '7.6%', height: '7.6%', target: 'electronic' },
             { top: '30.3%', left: '84%', width: '10.1%', height: '10.1%', target: 'seaweed' },
         ]
     },
