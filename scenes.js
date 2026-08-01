@@ -185,7 +185,9 @@ window.gameData = {
     },
     'electronic': {
         type: 'cinematic',
-        hotspots: []
+        hotspots: [
+					{ top: '81.0%', left: '40.6%', width: '6.4%', height: '6.4%', target: 'mall' }
+        ]
     },
     'plushie': {
         type: 'cinematic',
@@ -214,6 +216,10 @@ window.gameData = {
         hotspots: []
     },
     'seaweed': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'mall': {
         type: 'cinematic',
         hotspots: []
     },
