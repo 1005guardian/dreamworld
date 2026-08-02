@@ -22,6 +22,7 @@ window.gameData = {
             { top: '49.3%', left: '85.9%', width: '5.1%', height: '5.1%', target: 'plushie' },
             { top: '52.0%', left: '27.5%', width: '5.7%', height: '5.7%', target: 'croco' },
             { top: '80.5%', left: '54.8%', width: '6.9%', height: '6.9%', target: 'pandas' },
+  					{ top: '67.1%', left: '28.4%', width: '4.6%', height: '4.6%', target: 'pottery' },
         ]
     },
     'redspots': {
@@ -225,6 +226,10 @@ window.gameData = {
         hotspots: []
     },
     'wasteland': {
+        type: 'cinematic',
+        hotspots: []
+    },
+    'pottery': {
         type: 'cinematic',
         hotspots: []
     },
